@@ -266,6 +266,8 @@ export function HealthTool() {
               if (!result.success) {
                 setEmailConfirmStatus('error');
               }
+            }).catch(() => {
+              setEmailConfirmStatus('error');
             });
 
             // Reload from API to get authoritative data

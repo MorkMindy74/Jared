@@ -1,4 +1,5 @@
 import type { HealthInputs, HealthResults, Suggestion, MedicationInputs, ScreeningInputs } from './types';
+import { SUGGESTION_EVIDENCE } from './evidence';
 import { SCREENING_INTERVALS, POST_FOLLOWUP_INTERVALS, SCREENING_FOLLOWUP_INFO, STATIN_DRUGS, canIncreaseDose, shouldSuggestSwitch, isOnMaxPotency, canIncreaseGlp1Dose, shouldSuggestGlp1Switch, isOnMaxGlp1Potency, getScreeningNextDueDate } from './types';
 import {
   type UnitSystem,
@@ -111,7 +112,7 @@ export function generateSuggestions(
       category: 'nutrition',
       priority: 'info',
       title: 'Reduce sodium intake',
-      description: 'Aim for less than 2,300mg of sodium daily. Most excess sodium comes from processed foods. Reducing sodium can help lower blood pressure.',
+      description: 'Aim for less than 1,500mg of sodium daily. Most excess sodium comes from processed foods. Reducing sodium can help lower blood pressure.',
     });
   }
 
@@ -621,7 +622,7 @@ export function generateSuggestions(
         category: 'blood_pressure',
         priority: 'urgent',
         title: 'Stage 2 hypertension',
-        description: `Your BP of ${sys}/${dia} mmHg indicates stage 2 hypertension. Medication is typically recommended at this level.\n\nLifestyle measures that also help: reduce sodium intake (<2,300mg/day), exercise regularly, and prioritize quality sleep.${bpExtra}`,
+        description: `Your BP of ${sys}/${dia} mmHg indicates stage 2 hypertension. Medication is typically recommended at this level.\n\nLifestyle measures that also help: reduce sodium intake (<1,500mg/day), exercise regularly, and prioritize quality sleep.${bpExtra}`,
       });
     } else if (sys >= BP_THRESHOLDS.stage1Sys || dia > BP_THRESHOLDS.stage1Dia) {
       const bpTarget = results.age !== undefined && results.age >= 65 ? '<130/80' : '<120/80';
@@ -630,7 +631,7 @@ export function generateSuggestions(
         category: 'blood_pressure',
         priority: 'attention',
         title: 'Stage 1 hypertension',
-        description: `Your BP of ${sys}/${dia} mmHg indicates stage 1 hypertension. Target is ${bpTarget}.\n\nKey lifestyle measures: reduce sodium intake (<2,300mg/day), exercise regularly (150+ min/week), and prioritize quality sleep (7-9 hours).${bpExtra}`,
+        description: `Your BP of ${sys}/${dia} mmHg indicates stage 1 hypertension. Target is ${bpTarget}.\n\nKey lifestyle measures: reduce sodium intake (<1,500mg/day), exercise regularly (150+ min/week), and prioritize quality sleep (7-9 hours).${bpExtra}`,
       });
     }
   }
@@ -1076,6 +1077,18 @@ export function generateSuggestions(
         description: 'For further skin rejuvenation, consider discussing these options with a dermatologist: red light therapy (LED, 630–850nm), fractional laser resurfacing, intense pulsed light (IPL) for pigmentation, and microneedling for collagen induction.',
       },
     );
+  }
+
+  // Attach clinical evidence (reason, guidelines, references) from evidence.ts
+  for (const s of suggestions) {
+    // Direct match first, then prefix match for screening variants (-overdue, -upcoming, -followup)
+    const evidence = SUGGESTION_EVIDENCE[s.id]
+      || SUGGESTION_EVIDENCE[s.id.replace(/-(?:overdue|upcoming|followup)$/, '')];
+    if (evidence) {
+      s.reason = evidence.reason;
+      s.guidelines = evidence.guidelines;
+      s.references = evidence.references;
+    }
   }
 
   return suggestions;

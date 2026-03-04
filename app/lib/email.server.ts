@@ -880,11 +880,39 @@ function reminderItem(title: string, description: string, color: string): string
   `;
 }
 
+function suggestionEvidence(s: Suggestion): string {
+  let html = '';
+
+  // Guideline tags
+  if (s.guidelines && s.guidelines.length > 0) {
+    const tags = s.guidelines.map(g =>
+      `<span style="display:inline-block;padding:2px 8px;background:#f0f0f0;color:#666;font-size:11px;border-radius:10px;margin:0 4px 4px 0;">${g}</span>`
+    ).join('');
+    html += `<div style="margin:6px 0 0;">${tags}</div>`;
+  }
+
+  // Reason text
+  if (s.reason) {
+    html += `<div style="color:#666;font-size:12px;line-height:1.5;margin:8px 0 0;white-space:pre-line;">${s.reason}</div>`;
+  }
+
+  // Reference links
+  if (s.references && s.references.length > 0) {
+    const links = s.references.map(ref =>
+      `<a href="${ref.url}" style="color:#2563eb;font-size:11px;text-decoration:none;">${ref.label}</a>`
+    ).join('<br>');
+    html += `<div style="margin:6px 0 0;">${links}</div>`;
+  }
+
+  return html;
+}
+
 function suggestionGroup(title: string, color: string, items: Suggestion[]): string {
   const itemsHtml = items.map(s => `
     <div style="margin:0 0 12px;padding:12px;background:#f8f9fa;border-radius:4px;border-left:3px solid ${color};">
       <div style="color:#1a1a1a;font-size:14px;font-weight:600;margin:0 0 4px;">${s.link ? `<a href="${s.link}" style="color:#00A38B;text-decoration:none;">${s.title}</a>` : s.title}</div>
       <div style="color:#555;font-size:13px;line-height:1.4;">${s.description}</div>
+      ${suggestionEvidence(s)}
     </div>
   `).join('');
 

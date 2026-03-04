@@ -1,6 +1,6 @@
 # Health Roadmap Algorithm
 
-Single source of truth for all health calculations, clinical thresholds, medication cascades, screening logic, and suggestion rules. The code in `packages/health-core/src/` implements this algorithm. The user-facing `roadmap_text.html` must stay consistent with this document.
+Single source of truth for all health calculations, clinical thresholds, medication cascades, screening logic, and suggestion rules. The code in `packages/health-core/src/` implements this algorithm. Clinical evidence (patient-facing reasons, guideline citations, DOI references) for each suggestion is defined in `packages/health-core/src/evidence.ts` and attached automatically by `generateSuggestions()`. The user-facing `roadmap_text.html` must stay consistent with this document and `evidence.ts`.
 
 All values are stored and compared in **SI canonical units**. Conversion to display units (conventional/US) happens only at the UI layer.
 
@@ -26,7 +26,7 @@ All values are stored and compared in **SI canonical units**. Conversion to disp
 
 ## 1. Health Calculations
 
-Source: `calculations.ts`
+Source: `calculations.ts`de
 
 ### Ideal Body Weight (Peterson Formula, 2016)
 
@@ -225,7 +225,7 @@ LDL thresholds + 30 mg/dL for VLDL.
 | Stage 2 | 140 | 90 |
 | Crisis | 180 | 120 |
 
-**Age-dependent target:**
+**Age-dependent target** (based on SPRINT 2015 + ESPRIT 2024):
 - Age < 65: < 120/80
 - Age >= 65: < 130/80
 
@@ -276,21 +276,21 @@ Source: `suggestions.ts` -> `generateSuggestions()`
 
 ### Always-Show Lifestyle Suggestions
 
-| ID | Category | What |
-|----|----------|------|
-| `protein-target` | nutrition | Daily protein target (CKD-adjusted if eGFR < 45) |
-| `fiber` | nutrition | 25-35g fiber daily |
-| `exercise` | exercise | 150+ min cardio + 2-3 resistance sessions/week |
-| `sleep` | sleep | 7-9 hours nightly |
+| ID | Category | What | Evidence |
+|----|----------|------|----------|
+| `protein-target` | nutrition | Daily protein target (CKD-adjusted if eGFR < 45) | ISSN 2017 |
+| `fiber` | nutrition | 25-35g fiber daily | Reynolds 2019 |
+| `exercise` | exercise | 150+ min cardio + 2-3 resistance sessions/week | Physical Activity Guidelines 2018 |
+| `sleep` | sleep | 7-9 hours nightly | Cappuccio 2010 |
 
 ### Conditional Lifestyle Suggestions
 
-| ID | Condition | Priority |
-|----|-----------|----------|
-| `low-salt` | systolicBp > 120 (age < 65) or > 130 (age >= 65) | info |
-| `high-potassium` | eGFR >= 45 (safe kidney function) | info |
-| `trig-nutrition` | triglycerides >= 1.69 mmol/L | attention |
-| `reduce-alcohol` | BMI >= 30, OR (BMI > 25 AND WHtR >= 0.5), OR triglycerides >= 1.69 mmol/L | attention |
+| ID | Condition | Priority | Notes |
+|----|-----------|----------|-------|
+| `low-salt` | systolicBp > 120 (age < 65) or > 130 (age >= 65) | info | Target: <1,500 mg/day (ACC/AHA 2017) |
+| `high-potassium` | eGFR >= 45 (safe kidney function) | info | |
+| `trig-nutrition` | triglycerides >= 1.69 mmol/L | attention | |
+| `reduce-alcohol` | BMI >= 30, OR (BMI > 25 AND WHtR >= 0.5), OR triglycerides >= 1.69 mmol/L | attention | |
 
 ### HbA1c Tiers
 
@@ -591,11 +591,11 @@ Source: `suggestions.ts`
 
 ### Supplements (always shown)
 
-| ID | Title | Link |
-|----|-------|------|
-| `supplement-microvitamin` | MicroVitamin+ | drstanfield.com |
-| `supplement-omega3` | Omega-3 | Amazon |
-| `supplement-sleep` | Sleep by Dr Brad | drstanfield.com |
+| ID | Title | Link | Notes |
+|----|-------|------|-------|
+| `supplement-microvitamin` | MicroVitamin+ | drstanfield.com | COSMOS trial (Baker 2023) |
+| `supplement-omega3` | Omega-3 | Amazon | CV benefits (Bernasconi 2021) + cognitive synergy with B-complex (Jernerén 2015, Oulhaj 2016) |
+| `supplement-sleep` | Sleep by Dr Brad | drstanfield.com | Low-dose melatonin (Low 2020) |
 
 ---
 

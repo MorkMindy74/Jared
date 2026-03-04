@@ -393,7 +393,7 @@ describe('generateSuggestions', () => {
       const suggestions = generateSuggestions(inputs, results);
 
       const bpSuggestion = suggestions.find(s => s.id === 'bp-stage1');
-      expect(bpSuggestion?.description).toContain('reduce sodium intake (<2,300mg/day)');
+      expect(bpSuggestion?.description).toContain('reduce sodium intake (<1,500mg/day)');
     });
 
     it('stage 2 mentions sodium reduction', () => {
@@ -401,7 +401,7 @@ describe('generateSuggestions', () => {
       const suggestions = generateSuggestions(inputs, results);
 
       const bpSuggestion = suggestions.find(s => s.id === 'bp-stage2');
-      expect(bpSuggestion?.description).toContain('reduce sodium intake (<2,300mg/day)');
+      expect(bpSuggestion?.description).toContain('reduce sodium intake (<1,500mg/day)');
     });
 
     it('stage 1 mentions weight loss when BMI >= 30', () => {
@@ -2464,5 +2464,72 @@ describe('resolveBestLipidMarker', () => {
 
     const ldlResult = resolveBestLipidMarker(undefined, undefined, 1.5);
     expect(ldlResult!.target).toBe(LIPID_TREATMENT_TARGETS.ldlMmol);
+  });
+});
+
+describe('Evidence attachment', () => {
+  it('attaches reason, guidelines, and references to known suggestions', () => {
+    const { inputs, results } = createTestData({}, { bmi: 22 });
+    const suggestions = generateSuggestions(inputs, results, 'si');
+
+    // protein-target is always present
+    const protein = suggestions.find(s => s.id === 'protein-target');
+    expect(protein).toBeDefined();
+    expect(protein!.reason).toBeDefined();
+    expect(protein!.reason!.length).toBeGreaterThan(0);
+    expect(protein!.guidelines).toBeDefined();
+    expect(protein!.guidelines!).toContain('ISSN 2017');
+    expect(protein!.references).toBeDefined();
+    expect(protein!.references!.length).toBeGreaterThan(0);
+    expect(protein!.references![0].url).toMatch(/^https:\/\/doi\.org\//);
+  });
+
+  it('attaches evidence to exercise and sleep suggestions', () => {
+    const { inputs, results } = createTestData({}, { bmi: 22 });
+    const suggestions = generateSuggestions(inputs, results, 'si');
+
+    const exercise = suggestions.find(s => s.id === 'exercise');
+    expect(exercise?.reason).toBeDefined();
+    expect(exercise?.references?.length).toBeGreaterThan(0);
+
+    const sleep = suggestions.find(s => s.id === 'sleep');
+    expect(sleep?.reason).toBeDefined();
+    expect(sleep?.references?.length).toBeGreaterThan(0);
+  });
+
+  it('attaches evidence to screening suggestions via prefix matching', () => {
+    const { inputs, results } = createTestData(
+      { sex: 'male', birthYear: 1970, birthMonth: 1 },
+      { bmi: 22, age: 56 },
+    );
+    const screenings: ScreeningInputs = { colorectalMethod: 'not_yet_started' };
+    const suggestions = generateSuggestions(inputs, results, 'si', undefined, screenings);
+    const colorectal = suggestions.find(s => s.id.startsWith('screening-colorectal'));
+    expect(colorectal).toBeDefined();
+    expect(colorectal!.reason).toBeDefined();
+    expect(colorectal!.reason).toContain('Dr Stanfield');
+    expect(colorectal!.references!.length).toBeGreaterThan(0);
+  });
+
+  it('does not crash for suggestions without evidence entries', () => {
+    const { inputs, results } = createTestData({}, { bmi: 22 });
+    const suggestions = generateSuggestions(inputs, results, 'si');
+    // All suggestions should be valid objects regardless of evidence
+    for (const s of suggestions) {
+      expect(s.id).toBeDefined();
+      expect(s.title).toBeDefined();
+    }
+  });
+
+  it('attaches evidence to borderline lipid suggestions with PESA', () => {
+    const { inputs, results } = createTestData(
+      { apoB: apoB(65) },
+      { bmi: 22, apoB: apoB(65) },
+    );
+    const suggestions = generateSuggestions(inputs, results, 'si');
+    const apobBorderline = suggestions.find(s => s.id === 'apob-borderline');
+    expect(apobBorderline).toBeDefined();
+    expect(apobBorderline!.reason).toContain('PESA');
+    expect(apobBorderline!.references!.some(r => r.label.includes('PESA'))).toBe(true);
   });
 });

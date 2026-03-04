@@ -52,6 +52,11 @@ export interface HealthResults {
 /**
  * A health suggestion
  */
+export interface SuggestionReference {
+  label: string;
+  url: string;
+}
+
 export interface Suggestion {
   id: string;
   category: 'nutrition' | 'exercise' | 'bloodwork' | 'blood_pressure' | 'general' | 'sleep' | 'medication' | 'screening' | 'supplements' | 'skin';
@@ -59,6 +64,9 @@ export interface Suggestion {
   title: string;
   description: string;
   link?: string;
+  reason?: string;
+  guidelines?: string[];
+  references?: SuggestionReference[];
 }
 
 // ===== Statin Configuration (BPAC 2021) =====

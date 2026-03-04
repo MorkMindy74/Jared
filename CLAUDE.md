@@ -8,7 +8,10 @@ This file provides context for Claude Code when working on this project.
 
 ## Health Algorithm Reference
 
-See [health_roadmap_algorithm.md](health_roadmap_algorithm.md) — the **single source of truth** for all health calculations, clinical thresholds, medication cascades, screening logic, and suggestion rules. The user-facing `roadmap_text.html` must stay consistent with this document.
+See [health_roadmap_algorithm.md](health_roadmap_algorithm.md) — the **single source of truth** for all health calculations, clinical thresholds, medication cascades, screening logic, and suggestion rules. Clinical evidence (reasons, guideline citations, DOI references) lives in `packages/health-core/src/evidence.ts`. The user-facing `roadmap_text.html` must stay consistent with both documents. **These three files must stay in sync:**
+- `health_roadmap_algorithm.md` — thresholds, formulas, suggestion rules
+- `packages/health-core/src/evidence.ts` — clinical reasons, guideline tags, DOI references
+- `roadmap_text.html` — user-facing explanations and citations
 
 ## Tech Stack
 
@@ -60,7 +63,7 @@ See [health_roadmap_algorithm.md](health_roadmap_algorithm.md) — the **single 
 - `app/lib/supabase.server.ts` — Supabase dual-client, auth helpers, CRUD, audit logging, `deleteAllUserData()`
 - `app/routes/api.measurements.ts` — Measurement CRUD + profile + medication API (HMAC auth)
 - `app/routes/api.user-data.ts` — Account deletion endpoint (HMAC auth, rate-limited)
-- `app/lib/email.server.ts` — Welcome + reminder emails via Resend
+- `app/lib/email.server.ts` — Welcome + reminder emails via Resend. `suggestionEvidence()` renders evidence fields (reason, guidelines, references) inline in emails.
 - `app/lib/reminder-cron.server.ts` — Daily reminder cron (8:00 UTC, batches of 50)
 - `app/routes/api.reminders.ts` — Reminder preferences API + token-based unsubscribe page
 
@@ -71,6 +74,7 @@ See [health_roadmap_algorithm.md](health_roadmap_algorithm.md) — the **single 
 - `units.ts` — Unit definitions, SI↔conventional conversions, locale detection, clinical thresholds
 - `mappings.ts` — Field↔metric mappings, `measurementsToInputs()`, `diffInputsToMeasurements()`, field categories
 - `types.ts` — TypeScript interfaces, statin config, potency helpers
+- `evidence.ts` — Clinical evidence map: reasons, guideline tags, and DOI references for each suggestion ID
 - `reminders.ts` — Pure reminder logic: `computeDueReminders()`, cooldowns, category groups
 
 **Widget Source (`widget-src/src/`):**
@@ -274,7 +278,7 @@ Backend: Initialized in `app/entry.server.tsx`.
 ## Development Rules
 
 - **Push back on decisions.** Consider 2nd and 3rd order effects rather than just agreeing. Challenge ideas that may have unintended consequences.
-- **Algorithm docs**: When changing health calculations in `packages/health-core/src/`, update `health_roadmap_algorithm.md`. Then check if `roadmap_text.html` covers the same topic.
+- **Algorithm & evidence docs**: When changing health calculations in `packages/health-core/src/`, update `health_roadmap_algorithm.md`. When changing clinical evidence or references, update `packages/health-core/src/evidence.ts`. Then check if `roadmap_text.html` covers the same topic. All three files must stay in sync.
 - **Every feature/behavior change must include unit tests.** Run `npm test` before deploying.
 - **Bug fix workflow**: Write failing test → confirm it fails → fix → confirm it passes.
 - **Run tests in a Bash subagent** to keep verbose output out of main context.

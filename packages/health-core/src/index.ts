@@ -3,6 +3,7 @@ export type {
   HealthInputs,
   HealthResults,
   Suggestion,
+  SuggestionReference,
   Measurement,
   MedicationInputs,
   ScreeningInputs,

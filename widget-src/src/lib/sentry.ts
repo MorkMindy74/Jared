@@ -42,6 +42,15 @@ function scrubEvent(event: Sentry.ErrorEvent): Sentry.ErrorEvent | null {
   if (event.contexts) {
     event.contexts = scrubSensitiveData(event.contexts) as Record<string, Record<string, unknown>>;
   }
+  // Drop unhandled rejections of non-Error objects — always third-party noise.
+  // allowUrls can't filter these because plain-object rejections have no stack trace.
+  // Our code wraps all promises in apiCall() which catches errors properly.
+  if (event.exception?.values?.some(v =>
+    v.mechanism?.type === 'onunhandledrejection' && !v.stacktrace?.frames?.length
+  )) {
+    return null;
+  }
+
   if (event.request) {
     // Request body always contains health data in this app — remove entirely
     delete event.request.data;
@@ -72,7 +81,7 @@ export function initSentry() {
   Sentry.init({
     dsn: SENTRY_DSN,
     release: typeof __SENTRY_RELEASE__ !== 'undefined' ? __SENTRY_RELEASE__ : undefined,
-    environment: window.location.hostname.includes('myshopify.com') ? 'production' : 'development',
+    environment: window.location.hostname.includes('localhost') ? 'development' : 'production',
     // Only send 20% of transactions for performance monitoring
     tracesSampleRate: 0.2,
     // Don't send in development
