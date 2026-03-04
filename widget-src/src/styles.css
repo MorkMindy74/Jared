@@ -811,12 +811,16 @@
   white-space: pre-line;
 }
 
-/* Guideline tags */
-.suggestion-guidelines {
+/* Evidence section: tags + toggle on one line, content below */
+.suggestion-evidence-section {
+  margin-top: 6px;
+}
+
+.suggestion-evidence-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
-  margin-top: 6px;
 }
 
 .guideline-tag {
@@ -831,33 +835,22 @@
   white-space: nowrap;
 }
 
-/* Expandable evidence section */
-.suggestion-evidence {
-  margin-top: 8px;
+.guideline-tag-clickable {
+  cursor: pointer;
 }
 
-.suggestion-evidence summary {
+.guideline-tag-clickable:hover {
+  background: var(--color-gray-border);
+}
+
+.evidence-toggle {
   font-size: 13px;
   color: var(--color-primary, #1a73e8);
   cursor: pointer;
   user-select: none;
-  list-style: none;
 }
 
-.suggestion-evidence summary::-webkit-details-marker {
-  display: none;
-}
-
-.suggestion-evidence summary::before {
-  content: '▸ ';
-  font-size: 11px;
-}
-
-.suggestion-evidence[open] summary::before {
-  content: '▾ ';
-}
-
-.suggestion-evidence summary:hover {
+.evidence-toggle:hover {
   text-decoration: underline;
 }
 

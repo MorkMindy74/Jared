@@ -84,6 +84,43 @@ const priorityColors = {
   urgent: 'suggestion-urgent',
 };
 
+function SuggestionEvidence({ suggestion }: { suggestion: Suggestion }) {
+  const [open, setOpen] = useState(false);
+  const hasEvidence = suggestion.reason || (suggestion.references && suggestion.references.length > 0);
+  const hasGuidelines = suggestion.guidelines && suggestion.guidelines.length > 0;
+
+  if (!hasGuidelines && !hasEvidence) return null;
+
+  const toggle = () => setOpen(o => !o);
+
+  return (
+    <div className="suggestion-evidence-section">
+      <div className="suggestion-evidence-row">
+        {hasGuidelines && suggestion.guidelines!.map(g => (
+          <span key={g} className={`guideline-tag${hasEvidence ? ' guideline-tag-clickable' : ''}`} onClick={hasEvidence ? toggle : undefined}>{g}</span>
+        ))}
+        {hasEvidence && (
+          <span className="evidence-toggle" onClick={toggle}>{open ? '▾' : '▸'} Why this suggestion?</span>
+        )}
+      </div>
+      {open && hasEvidence && (
+        <div className="evidence-content">
+          {suggestion.reason && <p className="evidence-reason">{suggestion.reason}</p>}
+          {suggestion.references && suggestion.references.length > 0 && (
+            <div className="evidence-refs">
+              {suggestion.references.map(ref => (
+                <a key={ref.url} href={ref.url} target="_blank" rel="noopener noreferrer">
+                  {ref.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SuggestionCard({ suggestion, highlighted, fadingOut }: { suggestion: Suggestion; highlighted?: boolean; fadingOut?: boolean }) {
   const isSupplementCard = suggestion.category === 'supplements';
   const isSkinCard = suggestion.category === 'skin';
@@ -111,28 +148,7 @@ function SuggestionCard({ suggestion, highlighted, fadingOut }: { suggestion: Su
         )}
       </h4>
       <p className="suggestion-desc">{suggestion.description}</p>
-      {suggestion.guidelines && suggestion.guidelines.length > 0 && (
-        <div className="suggestion-guidelines">
-          {suggestion.guidelines.map(g => (
-            <span key={g} className="guideline-tag">{g}</span>
-          ))}
-        </div>
-      )}
-      {(suggestion.reason || (suggestion.references && suggestion.references.length > 0)) && (
-        <details className="suggestion-evidence">
-          <summary>Why this recommendation?</summary>
-          {suggestion.reason && <p className="evidence-reason">{suggestion.reason}</p>}
-          {suggestion.references && suggestion.references.length > 0 && (
-            <div className="evidence-refs">
-              {suggestion.references.map(ref => (
-                <a key={ref.url} href={ref.url} target="_blank" rel="noopener noreferrer">
-                  {ref.label}
-                </a>
-              ))}
-            </div>
-          )}
-        </details>
-      )}
+      <SuggestionEvidence suggestion={suggestion} />
     </div>
   );
 }
@@ -158,28 +174,7 @@ function GroupedSuggestionCard({ suggestions, category, highlightedIds, fadingOu
             <div key={s.id} className={`suggestion-subsection${highlightClass}`}>
               <h4 className="suggestion-title">{s.title}</h4>
               <p className="suggestion-desc">{s.description}</p>
-              {s.guidelines && s.guidelines.length > 0 && (
-                <div className="suggestion-guidelines">
-                  {s.guidelines.map(g => (
-                    <span key={g} className="guideline-tag">{g}</span>
-                  ))}
-                </div>
-              )}
-              {(s.reason || (s.references && s.references.length > 0)) && (
-                <details className="suggestion-evidence">
-                  <summary>Why this recommendation?</summary>
-                  {s.reason && <p className="evidence-reason">{s.reason}</p>}
-                  {s.references && s.references.length > 0 && (
-                    <div className="evidence-refs">
-                      {s.references.map(ref => (
-                        <a key={ref.url} href={ref.url} target="_blank" rel="noopener noreferrer">
-                          {ref.label}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </details>
-              )}
+              <SuggestionEvidence suggestion={s} />
             </div>
           );
         })}
