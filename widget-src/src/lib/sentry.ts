@@ -92,6 +92,9 @@ export function initSentry() {
       // Third-party fetch interceptors (Appstle Bundles) create unhandled rejections
       // from our fetch calls. Our api.ts already catches and handles these.
       /Failed to fetch/,
+      // DuckDuckGo Privacy Browser injects feature registry code into pages;
+      // these errors are from their content scripts, not our code.
+      /feature named `.+` was not found/,
     ],
     allowUrls: [
       // Only capture errors originating from our own widget bundles
