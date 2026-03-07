@@ -351,8 +351,11 @@ export function generateSuggestions(
   const lipidMarker = resolveBestLipidMarker(inputs.apoB, results.nonHdlCholesterol, inputs.ldlC);
 
   // Track whether medication cascade will absorb lipid context,
-  // so we can suppress standalone atherogenic marker cards and total cholesterol
-  const lipidMedCascadeActive = medications !== undefined && (lipidMarker?.elevated ?? false);
+  // so we can suppress standalone atherogenic marker cards and total cholesterol.
+  // Only suppress when user has engaged with medication questions (statin status recorded).
+  // When medications is {} (no statin decision), show both standalone cards and cascade.
+  const statinStatusRecorded = medications?.statin?.drug !== undefined;
+  const lipidMedCascadeActive = statinStatusRecorded && (lipidMarker?.elevated ?? false);
   let hasElevatedAtherogenicSuggestion = false;
 
   // ApoB (top of hierarchy — always shown when available)
@@ -575,7 +578,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'Low HDL cholesterol',
-        description: `Your HDL of ${fmtHdl(inputs.hdlC, us)} is below optimal (${formatDisplayValue('hdl', lowThreshold, us)} ${getDisplayLabel('hdl', us)} for ${inputs.sex === 'male' ? 'men' : 'women'}). Exercise and healthy fats can help raise HDL.`,
+        description: `Your HDL of ${fmtHdl(inputs.hdlC, us)} is below optimal (${us === 'si' ? lowThreshold.toFixed(2) : formatDisplayValue('hdl', lowThreshold, us)} ${getDisplayLabel('hdl', us)} for ${inputs.sex === 'male' ? 'men' : 'women'}). Exercise and healthy fats can help raise HDL.`,
       });
     }
   }

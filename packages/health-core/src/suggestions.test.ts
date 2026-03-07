@@ -229,6 +229,29 @@ describe('generateSuggestions', () => {
       const hdlSuggestion = suggestions.find(s => s.id === 'hdl-low');
       expect(hdlSuggestion).toBeUndefined();
     });
+
+    it('displays threshold with enough precision to distinguish from user value (SI)', () => {
+      // HDL = 1.0 mmol/L (≈38.67 mg/dL), threshold for males is ~1.034 mmol/L (40 mg/dL)
+      // The displayed threshold must NOT round to "1.0" — would read "1.0 is below 1.0"
+      const hdlSI = 1.0; // Already in SI (mmol/L)
+      const { inputs, results } = createTestData({ hdlC: hdlSI, sex: 'male' });
+      const suggestions = generateSuggestions(inputs, results, 'si');
+
+      const hdlSuggestion = suggestions.find(s => s.id === 'hdl-low');
+      expect(hdlSuggestion).toBeDefined();
+      // Threshold should show as "1.03" not "1.0"
+      expect(hdlSuggestion!.description).toContain('1.03');
+      expect(hdlSuggestion!.description).not.toMatch(/\(1\.0 mmol/);
+    });
+
+    it('displays threshold correctly in conventional units', () => {
+      const { inputs, results } = createTestData({ hdlC: hdl(35), sex: 'male' });
+      const suggestions = generateSuggestions(inputs, results, 'conventional');
+
+      const hdlSuggestion = suggestions.find(s => s.id === 'hdl-low');
+      expect(hdlSuggestion).toBeDefined();
+      expect(hdlSuggestion!.description).toContain('40 mg/dL');
+    });
   });
 
   describe('Triglycerides suggestions', () => {
@@ -596,7 +619,8 @@ describe('generateSuggestions', () => {
         { apoB: apoB(60), totalCholesterol: totalChol(250) }
       );
       // ApoB 60 mg/dL = 0.6 g/L > 0.5 target, so medication cascade triggers
-      const meds: MedicationInputs = {};
+      // User has engaged with medication questions (statin status recorded)
+      const meds: MedicationInputs = { statin: { drug: 'none', dose: null } };
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
 
       expect(suggestions.filter(s => s.id.startsWith('total-chol-')).length).toBe(0);
@@ -624,10 +648,10 @@ describe('generateSuggestions', () => {
       expect(suggestions.find(s => s.id === 'total-chol-high')).toBeDefined();
     });
 
-    it('suppresses standalone ApoB card when medication cascade is active', () => {
+    it('suppresses standalone ApoB card when medication cascade is active (statin decision recorded)', () => {
       // ApoB 51 mg/dL = 0.51 g/L > 0.50 target → borderline + cascade active
       const { inputs, results } = createTestData({ apoB: apoB(51) });
-      const meds: MedicationInputs = {};
+      const meds: MedicationInputs = { statin: { drug: 'none', dose: null } };
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
 
       // Medication cascade fires, standalone ApoB card suppressed
@@ -635,21 +659,21 @@ describe('generateSuggestions', () => {
       expect(suggestions.find(s => s.id === 'apob-borderline')).toBeUndefined();
     });
 
-    it('suppresses standalone LDL card when medication cascade is active', () => {
+    it('suppresses standalone LDL card when medication cascade is active (statin decision recorded)', () => {
       const { inputs, results } = createTestData({ ldlC: ldl(60) }); // ~1.55 mmol/L > 1.4
-      const meds: MedicationInputs = {};
+      const meds: MedicationInputs = { statin: { drug: 'none', dose: null } };
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
 
       expect(suggestions.find(s => s.id === 'med-statin')).toBeDefined();
       expect(suggestions.filter(s => s.id.startsWith('ldl-')).length).toBe(0);
     });
 
-    it('suppresses standalone non-HDL card when medication cascade is active', () => {
+    it('suppresses standalone non-HDL card when medication cascade is active (statin decision recorded)', () => {
       const { inputs, results } = createTestData(
         { totalCholesterol: totalChol(200), hdlC: hdl(50) },
         { nonHdlCholesterol: totalChol(200) - hdl(50) },
       );
-      const meds: MedicationInputs = {};
+      const meds: MedicationInputs = { statin: { drug: 'none', dose: null } };
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
 
       expect(suggestions.find(s => s.id === 'med-statin')).toBeDefined();
@@ -662,6 +686,26 @@ describe('generateSuggestions', () => {
 
       expect(suggestions.find(s => s.id === 'apob-borderline')).toBeDefined();
       expect(suggestions.find(s => s.id === 'med-statin')).toBeUndefined();
+    });
+
+    it('shows standalone LDL card AND med-statin when medications is empty (no statin decision)', () => {
+      // User has medications object but hasn't answered statin question yet
+      const { inputs, results } = createTestData({ ldlC: ldl(200) }); // ~5.17 mmol/L, very high
+      const meds: MedicationInputs = {};
+      const suggestions = generateSuggestions(inputs, results, 'si', meds);
+
+      // Both the urgent bloodwork alert AND the statin suggestion should appear
+      expect(suggestions.find(s => s.id === 'ldl-very-high')).toBeDefined();
+      expect(suggestions.find(s => s.id === 'med-statin')).toBeDefined();
+    });
+
+    it('shows standalone ApoB card AND med-statin when medications is empty (no statin decision)', () => {
+      const { inputs, results } = createTestData({ apoB: apoB(51) });
+      const meds: MedicationInputs = {};
+      const suggestions = generateSuggestions(inputs, results, 'si', meds);
+
+      expect(suggestions.find(s => s.id === 'apob-borderline')).toBeDefined();
+      expect(suggestions.find(s => s.id === 'med-statin')).toBeDefined();
     });
   });
 
