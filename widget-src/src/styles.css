@@ -92,6 +92,14 @@
     margin-bottom: 16px;
   }
 
+  .account-status-row {
+    flex-wrap: wrap;
+  }
+
+  .account-actions {
+    flex-shrink: 1;
+  }
+
   .mobile-tab-bar-container {
     position: sticky;
     top: 0;

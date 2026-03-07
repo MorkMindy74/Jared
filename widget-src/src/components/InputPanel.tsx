@@ -50,7 +50,6 @@ import type { TabId } from './MobileTabBar';
 interface FieldConfig {
   field: keyof HealthInputs;
   name: string;
-  placeholder: { si: string; conv: string };
   step?: { si: string; conv: string };
   hint?: { si: string; conv: string };
   hintMale?: { si: string; conv: string };
@@ -58,8 +57,8 @@ interface FieldConfig {
 }
 
 const BASIC_LONGITUDINAL_FIELDS: FieldConfig[] = [
-  { field: 'weightKg', name: 'Weight', placeholder: { si: '70', conv: '154' } },
-  { field: 'waistCm', name: 'Waist Circumference', placeholder: { si: '80', conv: '31' } },
+  { field: 'weightKg', name: 'Weight' },
+  { field: 'waistCm', name: 'Waist Circumference' },
 ];
 
 const ALL_MONTHS = [
@@ -92,13 +91,11 @@ function scrNum(scr: ScreeningInputs, dbKey: string): number | undefined {
 const BLOOD_TEST_FIELDS: FieldConfig[] = [
   {
     field: 'hba1c', name: 'HbA1c',
-    placeholder: { si: '39', conv: '5.5' },
     step: { si: '1', conv: '0.1' },
     hint: { si: 'Normal: <39 mmol/mol', conv: 'Normal: <5.7%' },
   },
   {
     field: 'creatinine', name: 'Creatinine',
-    placeholder: { si: '80', conv: '0.9' },
     step: { si: '1', conv: '0.01' },
     hint: { si: 'Normal: 45–90 µmol/L', conv: 'Normal: 0.5–1.0 mg/dL' },
     hintMale: { si: 'Normal: 60–110 µmol/L', conv: 'Normal: 0.7–1.2 mg/dL' },
@@ -106,25 +103,21 @@ const BLOOD_TEST_FIELDS: FieldConfig[] = [
   },
   {
     field: 'apoB', name: 'ApoB',
-    placeholder: { si: '0.5', conv: '50' },
     step: { si: '0.01', conv: '1' },
     hint: { si: 'Optimal: <0.5 g/L', conv: 'Optimal: <50 mg/dL' },
   },
   {
     field: 'ldlC', name: 'LDL Cholesterol',
-    placeholder: { si: '1.4', conv: '55' },
     step: { si: '0.1', conv: '1' },
     hint: { si: 'Optimal: <1.4 mmol/L', conv: 'Optimal: <55 mg/dL' },
   },
   {
     field: 'totalCholesterol', name: 'Total Cholesterol',
-    placeholder: { si: '3.5', conv: '135' },
     step: { si: '0.1', conv: '1' },
     hint: { si: 'Optimal: <3.5 mmol/L', conv: 'Optimal: <135 mg/dL' },
   },
   {
     field: 'hdlC', name: 'HDL Cholesterol',
-    placeholder: { si: '1.3', conv: '50' },
     step: { si: '0.1', conv: '1' },
     hint: { si: 'Optimal: >1.0 mmol/L (men), >1.3 mmol/L (women)', conv: 'Optimal: >40 mg/dL (men), >50 mg/dL (women)' },
     hintMale: { si: 'Optimal: >1.0 mmol/L', conv: 'Optimal: >40 mg/dL' },
@@ -132,13 +125,11 @@ const BLOOD_TEST_FIELDS: FieldConfig[] = [
   },
   {
     field: 'triglycerides', name: 'Triglycerides',
-    placeholder: { si: '1.1', conv: '100' },
     step: { si: '0.1', conv: '1' },
     hint: { si: 'Normal: <1.7 mmol/L', conv: 'Normal: <150 mg/dL' },
   },
   {
     field: 'lpa', name: 'Lp(a)',
-    placeholder: { si: '30', conv: '30' },
     step: { si: '1', conv: '1' },
     hint: { si: 'Normal: <75 nmol/L', conv: 'Normal: <75 nmol/L' },
   },
@@ -379,7 +370,7 @@ export function InputPanel({
   };
 
   const renderLongitudinalField = (config: FieldConfig, isBloodTest = false) => {
-    const { field, name, placeholder, step, hint, hintMale, hintFemale } = config;
+    const { field, name, step, hint, hintMale, hintFemale } = config;
     const effectiveHint = (inputs.sex === 'male' && hintMale) ? hintMale
       : (inputs.sex === 'female' && hintFemale) ? hintFemale
       : hint;
@@ -404,7 +395,7 @@ export function InputPanel({
               updateField(field, parseAndConvert(field, raw));
             }}
             onBlur={() => setRawInputs(prev => { const next = { ...prev }; delete next[field]; return next; })}
-            placeholder={getPreviousPlaceholder(field) ?? (unitSystem === 'si' ? placeholder.si : placeholder.conv)}
+            placeholder={getPreviousPlaceholder(field)}
             step={step ? (unitSystem === 'si' ? step.si : step.conv) : undefined}
             min={r.min}
             max={r.max}
@@ -528,7 +519,7 @@ export function InputPanel({
                     updateField('heightCm', parseAndConvert('heightCm', raw));
                   }}
                   onBlur={() => setRawInputs(prev => { const next = { ...prev }; delete next['heightCm']; return next; })}
-                  placeholder="170"
+                  placeholder=""
                   min={range('heightCm').min}
                   max={range('heightCm').max}
                   className={errors.heightCm ? 'error' : ''}
@@ -552,7 +543,7 @@ export function InputPanel({
                         updateField('heightCm', undefined);
                       }
                     }}
-                    placeholder="5"
+                    placeholder=""
                     maxLength={1}
                     className={errors.heightCm ? 'error' : ''}
                   />
@@ -574,7 +565,7 @@ export function InputPanel({
                         updateField('heightCm', undefined);
                       }
                     }}
-                    placeholder="10"
+                    placeholder=""
                     maxLength={2}
                     className={errors.heightCm ? 'error' : ''}
                   />
@@ -617,7 +608,7 @@ export function InputPanel({
                       updateField('birthYear', num);
                     }}
                     onBlur={() => validateOnBlur('birthYear')}
-                    placeholder="1980"
+                    placeholder=""
                     min="1900"
                     max={new Date().getFullYear()}
                   />
@@ -655,7 +646,7 @@ export function InputPanel({
                 value={inputs.systolicBp ?? ''}
                 onChange={(e) => updateField('systolicBp', parseNumber(e.target.value))}
                 onBlur={() => validateOnBlur('systolicBp')}
-                placeholder={getPreviousPlaceholder('systolicBp') ?? "120"}
+                placeholder={getPreviousPlaceholder('systolicBp')}
                 min={60}
                 max={250}
                 className={errors.systolicBp ? 'error' : ''}
@@ -668,7 +659,7 @@ export function InputPanel({
                 value={inputs.diastolicBp ?? ''}
                 onChange={(e) => updateField('diastolicBp', parseNumber(e.target.value))}
                 onBlur={() => validateOnBlur('diastolicBp')}
-                placeholder={getPreviousPlaceholder('diastolicBp') ?? "80"}
+                placeholder={getPreviousPlaceholder('diastolicBp')}
                 min={40}
                 max={150}
                 className={errors.diastolicBp ? 'error' : ''}
@@ -1405,7 +1396,7 @@ export function InputPanel({
                         id="lung-pack-years"
                         value={scrNum(scr, 'lung_pack_years') ?? ''}
                         onChange={(e) => onScreeningChange('lung_pack_years', e.target.value)}
-                        placeholder="20"
+                        placeholder=""
                         min="0"
                         max="200"
                         step="1"
@@ -1502,7 +1493,7 @@ export function InputPanel({
                                 setRawInputs(prev => { const next = { ...prev }; delete next.psa; return next; });
                                 validateOnBlur('psa');
                               }}
-                              placeholder="1.5"
+                              placeholder=""
                               step="0.1"
                               min="0"
                               max="100"
