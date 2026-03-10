@@ -92,6 +92,8 @@ export function initSentry() {
       // Third-party fetch interceptors (Appstle Bundles) create unhandled rejections
       // from our fetch calls. Our api.ts already catches and handles these.
       /Failed to fetch/,
+      // Safari/WebKit's equivalent of "Failed to fetch" — network request cancelled or blocked.
+      /Load failed/,
       // Firefox's equivalent of "Failed to fetch" — network unavailable or blocked.
       /NetworkError when attempting to fetch resource/,
       // iOS WebKit DOMException SYNTAX_ERR (code 12) — browser-level DOM noise

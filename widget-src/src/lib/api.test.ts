@@ -121,6 +121,12 @@ describe('Sentry ignoreErrors patterns', () => {
     expect(pattern.test('SyntaxError: The string did not match the expected pattern.')).toBe(true);
   });
 
+  it('matches Safari/WebKit Load failed message', () => {
+    const pattern = /Load failed/;
+    expect(pattern.test('Load failed')).toBe(true);
+    expect(pattern.test('TypeError: Load failed')).toBe(true);
+  });
+
   it('matches AbortError message', () => {
     const pattern = /The operation was aborted/;
     expect(pattern.test('The operation was aborted.')).toBe(true);
@@ -130,6 +136,7 @@ describe('Sentry ignoreErrors patterns', () => {
   it('patterns do not over-match unrelated errors', () => {
     const patterns = [
       /NetworkError when attempting to fetch resource/,
+      /Load failed/,
       /The string did not match the expected pattern/,
       /The operation was aborted/,
     ];
