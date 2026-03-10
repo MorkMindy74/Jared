@@ -21,8 +21,10 @@ import {
   BP_THRESHOLDS,
   computeFormStage,
   resolveEmailConfirmStatus,
+  FIELD_METRIC_MAP,
   type HealthInputs,
   type UnitSystem,
+  type MetricType,
   type ApiMeasurement,
   type ApiMedication,
   type ApiScreening,
@@ -119,17 +121,44 @@ export function HealthTool() {
     return loadUnitPreference() ?? detectUnitSystem();
   });
 
+  // Per-field unit overrides (persisted to localStorage)
+  const [unitOverrides, setUnitOverrides] = useState<Record<string, UnitSystem>>(() => {
+    try {
+      const stored = localStorage.getItem('health_roadmap_unit_overrides');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
   // Track previously saved inputs to only save changed fields (demographics + height only)
   const previousInputsRef = useRef<Partial<HealthInputs>>({});
 
   // Get auth state once on mount
   const [authState] = useState<AuthState>(() => getAuthState());
 
+  // Toggle a single field's unit override
+  const handleToggleFieldUnit = useCallback((field: string) => {
+    setUnitOverrides(prev => {
+      const current = prev[field] ?? unitSystem;
+      const toggled = current === 'si' ? 'conventional' : 'si';
+      const next = { ...prev };
+      if (toggled === unitSystem) {
+        delete next[field];
+      } else {
+        next[field] = toggled;
+      }
+      localStorage.setItem('health_roadmap_unit_overrides', JSON.stringify(next));
+      return next;
+    });
+  }, [unitSystem]);
+
   // Handle unit system change — save to localStorage and to inputs (for cloud sync)
   const handleUnitSystemChange = useCallback((system: UnitSystem) => {
     setUnitSystem(system);
     saveUnitPreference(system);
     setInputs(prev => ({ ...prev, unitSystem: system }));
+    // Clear per-field overrides when global unit changes
+    setUnitOverrides({});
+    localStorage.removeItem('health_roadmap_unit_overrides');
   }, []);
 
   // Load data on mount (from cloud if logged in, otherwise localStorage)
@@ -431,6 +460,16 @@ export function HealthTool() {
     }
   }, [authState.isLoggedIn, inputs, previousMeasurements]);
 
+  // Convert field-keyed overrides to MetricType-keyed for health-core + ResultsPanel
+  const metricUnitOverrides = useMemo(() => {
+    const m: Partial<Record<MetricType, UnitSystem>> = {};
+    for (const [field, fieldUs] of Object.entries(unitOverrides)) {
+      const metric = FIELD_METRIC_MAP[field];
+      if (metric) m[metric] = fieldUs;
+    }
+    return Object.keys(m).length > 0 ? m : undefined;
+  }, [unitOverrides]);
+
   // Calculate results using effective inputs (form + fallback to previous)
   const { results, isValid, validationErrors } = useMemo(() => {
     if (!effectiveInputs.heightCm || !effectiveInputs.sex) {
@@ -463,9 +502,10 @@ export function HealthTool() {
       unitSystem,
       medicationsToInputs(medications),
       screeningsToInputs(screenings),
+      metricUnitOverrides,
     );
     return { results: healthResults, isValid: true, validationErrors: errors };
-  }, [effectiveInputs, unitSystem, medications, screenings]);
+  }, [effectiveInputs, unitSystem, medications, screenings, metricUnitOverrides]);
 
   useEffect(() => {
     setErrors(validationErrors ?? {});
@@ -664,6 +704,8 @@ export function HealthTool() {
     errors,
     unitSystem,
     onUnitSystemChange: handleUnitSystemChange,
+    unitOverrides,
+    onToggleFieldUnit: handleToggleFieldUnit,
     isLoggedIn: authState.isLoggedIn,
     previousMeasurements,
     medications,
@@ -683,6 +725,7 @@ export function HealthTool() {
     saveStatus,
     emailConfirmStatus,
     unitSystem,
+    unitOverrides: metricUnitOverrides,
     hasUnsavedLongitudinal: authState.isLoggedIn && hasApiResponse && LONGITUDINAL_FIELDS.some(f => inputs[f] !== undefined),
     onSaveLongitudinal: handleSaveLongitudinal,
     isSavingLongitudinal,

@@ -141,6 +141,8 @@ interface InputPanelProps {
   errors: Record<string, string>;
   unitSystem: UnitSystem;
   onUnitSystemChange: (system: UnitSystem) => void;
+  unitOverrides: Record<string, UnitSystem>;
+  onToggleFieldUnit: (field: string) => void;
   isLoggedIn: boolean;
   previousMeasurements: ApiMeasurement[];
   medications: ApiMedication[];
@@ -156,6 +158,7 @@ interface InputPanelProps {
 
 export function InputPanel({
   inputs, onChange, errors, unitSystem, onUnitSystemChange,
+  unitOverrides, onToggleFieldUnit,
   isLoggedIn, previousMeasurements, medications, onMedicationChange,
   screenings, onScreeningChange,
   onSaveLongitudinal, isSavingLongitudinal, hasApiResponse,
@@ -165,6 +168,17 @@ export function InputPanel({
   const [prefillExpanded, setPrefillExpanded] = useState(false);
   const [rawInputs, setRawInputs] = useState<Record<string, string>>({});
   const [dateInputs, setDateInputs] = useState<Record<string, { year: string; month: string }>>({});
+
+  /** Get effective unit system for a field (override or global default). */
+  const fieldUnit = (field: string): UnitSystem => unitOverrides[field] ?? unitSystem;
+
+  /** Whether a field has different SI/conventional labels (i.e., a toggle is useful). */
+  const hasUnitToggle = (field: string): boolean => {
+    const metric = FIELD_METRIC_MAP[field];
+    if (!metric) return false;
+    const def = UNIT_DEFS[metric];
+    return def.label.si !== def.label.conventional;
+  };
   const prefillComplete = !!(inputs.sex && inputs.heightCm && inputs.birthYear && inputs.birthYear >= 1900 && inputs.birthMonth);
 
   // Animated collapse: delay before collapsing so user sees their input registered
@@ -220,15 +234,16 @@ export function InputPanel({
     if (isNaN(num)) return undefined;
     const metric = FIELD_METRIC_MAP[field];
     if (!metric) return num;
-    return toCanonicalValue(metric, num, unitSystem);
+    return toCanonicalValue(metric, num, fieldUnit(field));
   };
 
   const toDisplay = (field: string, siValue: number | undefined): string => {
     if (siValue === undefined) return '';
     const metric = FIELD_METRIC_MAP[field];
     if (!metric) return String(siValue);
-    const display = fromCanonicalValue(metric, siValue, unitSystem);
-    const dp = UNIT_DEFS[metric].decimalPlaces[unitSystem];
+    const fu = fieldUnit(field);
+    const display = fromCanonicalValue(metric, siValue, fu);
+    const dp = UNIT_DEFS[metric].decimalPlaces[fu];
     const rounded = parseFloat(display.toFixed(dp));
     return String(rounded);
   };
@@ -236,13 +251,13 @@ export function InputPanel({
   const fieldLabel = (field: string, name: string): string => {
     const metric = FIELD_METRIC_MAP[field];
     if (!metric) return name;
-    return `${name} (${getDisplayLabel(metric, unitSystem)})`;
+    return `${name} (${getDisplayLabel(metric, fieldUnit(field))})`;
   };
 
   const range = (field: string): { min: number; max: number } => {
     const metric = FIELD_METRIC_MAP[field];
     if (!metric) return { min: 0, max: 999 };
-    return getDisplayRange(metric, unitSystem);
+    return getDisplayRange(metric, fieldUnit(field));
   };
 
   const parseNumber = (value: string): number | undefined => {
@@ -276,7 +291,7 @@ export function InputPanel({
     if (!measurement) return null;
 
     const displayValue = toDisplay(field, measurement.value);
-    const unit = getDisplayLabel(metric, unitSystem);
+    const unit = getDisplayLabel(metric, fieldUnit(field));
     return `${displayValue} ${unit} · ${formatShortDate(measurement.recordedAt)}`;
   };
 
@@ -379,7 +394,21 @@ export function InputPanel({
     const needsAttention = field === 'weightKg' && formStage === 3 && inputs.weightKg === undefined;
     return (
       <div className={`health-field${needsAttention ? ' field-attention' : ''}`} key={field}>
-        <label htmlFor={field}>{fieldLabel(field, name)}</label>
+        <label htmlFor={field}>
+          {name}{' '}
+          {hasUnitToggle(field) ? (
+            <button
+              type="button"
+              className="unit-toggle-pill"
+              onClick={(e) => { e.preventDefault(); onToggleFieldUnit(field); }}
+              title={`Switch to ${fieldUnit(field) === 'si' ? 'conventional' : 'metric'} units`}
+            >
+              {getDisplayLabel(FIELD_METRIC_MAP[field]!, fieldUnit(field))}
+            </button>
+          ) : (
+            FIELD_METRIC_MAP[field] ? <span>({getDisplayLabel(FIELD_METRIC_MAP[field]!, fieldUnit(field))})</span> : null
+          )}
+        </label>
         <div className="longitudinal-input-row">
           <input
             type="number"
@@ -396,7 +425,7 @@ export function InputPanel({
             }}
             onBlur={() => setRawInputs(prev => { const next = { ...prev }; delete next[field]; return next; })}
             placeholder={getPreviousPlaceholder(field)}
-            step={step ? (unitSystem === 'si' ? step.si : step.conv) : undefined}
+            step={step ? (fieldUnit(field) === 'si' ? step.si : step.conv) : undefined}
             min={r.min}
             max={r.max}
             className={errors[field] ? 'error' : ''}
@@ -419,7 +448,7 @@ export function InputPanel({
           <div className="field-meta">
             {effectiveHint && (
               <span className="field-hint">
-                {unitSystem === 'si' ? effectiveHint.si : effectiveHint.conv}
+                {fieldUnit(field) === 'si' ? effectiveHint.si : effectiveHint.conv}
               </span>
             )}
             {previousLabel && (
@@ -766,7 +795,7 @@ export function InputPanel({
           const unitKey = lipidMarker.kind === 'apoB' ? 'apob' : 'ldl';
           const val = toDisplay(metricKey, lipidMarker.value);
           const target = toDisplay(metricKey, lipidMarker.target);
-          const unit = getDisplayLabel(unitKey, unitSystem);
+          const unit = getDisplayLabel(unitKey, fieldUnit(metricKey));
           const introText = `Your ${lipidMarker.label} is ${val} ${unit}, which is above the treatment target of ${target} ${unit}.`;
           const lipidName = lipidMarker.label;
 

@@ -62,6 +62,11 @@ export function resolveBestLipidMarker(
   return null;
 }
 
+/** Map lipid marker kind to its MetricType for unit resolution */
+function lipidMarkerMetric(marker: LipidMarker): MetricType {
+  return marker.kind === 'apoB' ? 'apob' : 'ldl';
+}
+
 /** Format a resolved lipid marker's value or target for display */
 function fmtLipidMarkerValue(marker: LipidMarker, v: number, us: UnitSystem): string {
   if (marker.kind === 'apoB') return fmtApoB(v, us);
@@ -81,9 +86,11 @@ export function generateSuggestions(
   unitSystem: UnitSystem = 'si',
   medications?: MedicationInputs,
   screenings?: ScreeningInputs,
+  unitOverrides?: Partial<Record<MetricType, UnitSystem>>,
 ): Suggestion[] {
   const suggestions: Suggestion[] = [];
-  const us = unitSystem;
+  /** Resolve effective unit system for a given metric (per-field override or global default) */
+  const us = (metric: MetricType): UnitSystem => unitOverrides?.[metric] ?? unitSystem;
 
   // Whether BMI is classified as elevated (Overweight or Obese).
   // Accounts for WHtR reclassification: BMI 25-29.9 with healthy WHtR (<0.5) → Normal.
@@ -100,8 +107,8 @@ export function generateSuggestions(
     priority: 'info',
     title: `Daily protein target: ${results.proteinTarget}g`,
     description: isCkd
-      ? `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us)}, aim for ${results.proteinTarget}g of protein daily (1.0g per kg, adjusted for kidney function). Discuss with your doctor.`
-      : `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us)}, aim for ${results.proteinTarget}g of protein daily. This supports muscle maintenance and metabolic health.`,
+      ? `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for ${results.proteinTarget}g of protein daily (1.0g per kg, adjusted for kidney function). Discuss with your doctor.`
+      : `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for ${results.proteinTarget}g of protein daily. This supports muscle maintenance and metabolic health.`,
   });
 
   // Low salt — age-dependent threshold (matches BP target age cutoff)
@@ -322,7 +329,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'urgent',
         title: 'HbA1c in diabetic range',
-        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us)} indicates diabetes. This requires medical management and lifestyle intervention.`,
+        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us('hba1c'))} indicates diabetes. This requires medical management and lifestyle intervention.`,
       });
     } else if (inputs.hba1c >= HBA1C_THRESHOLDS.prediabetes) {
       suggestions.push({
@@ -330,7 +337,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'HbA1c indicates prediabetes',
-        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us)} is in the prediabetic range. Lifestyle changes now can prevent progression to diabetes.`,
+        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us('hba1c'))} is in the prediabetic range. Lifestyle changes now can prevent progression to diabetes.`,
       });
     } else {
       suggestions.push({
@@ -338,7 +345,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'info',
         title: 'HbA1c in normal range',
-        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us)} is in the normal range. Continue healthy habits to maintain this.`,
+        description: `Your HbA1c of ${fmtHba1c(inputs.hba1c, us('hba1c'))} is in the normal range. Continue healthy habits to maintain this.`,
       });
     }
   }
@@ -368,7 +375,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'urgent',
         title: 'Very high ApoB',
-        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us)} is very high, indicating significantly elevated cardiovascular risk. Statin therapy and lifestyle intervention are typically recommended.`,
+        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us('apob'))} is very high, indicating significantly elevated cardiovascular risk. Statin therapy and lifestyle intervention are typically recommended.`,
       });
     } else if (inputs.apoB! >= APOB_THRESHOLDS.high) {
       hasElevatedAtherogenicSuggestion = true;
@@ -377,7 +384,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'High ApoB',
-        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us)} is elevated. Consider lifestyle modifications and discuss treatment options to reduce cardiovascular risk.`,
+        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us('apob'))} is elevated. Consider lifestyle modifications and discuss treatment options to reduce cardiovascular risk.`,
       });
     } else if (inputs.apoB! >= APOB_THRESHOLDS.borderline) {
       suggestions.push({
@@ -385,7 +392,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'info',
         title: 'Borderline high ApoB',
-        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us)} is borderline. Optimal is <${formatDisplayValue('apob', APOB_THRESHOLDS.borderline, us)} ${getDisplayLabel('apob', us)}.`,
+        description: `Your ApoB of ${fmtApoB(inputs.apoB!, us('apob'))} is borderline. Optimal is <${formatDisplayValue('apob', APOB_THRESHOLDS.borderline, us('apob'))} ${getDisplayLabel('apob', us('apob'))}.`,
       });
     }
   }
@@ -399,7 +406,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'urgent',
         title: 'Very high LDL cholesterol',
-        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us)} is significantly elevated. This may indicate familial hypercholesterolemia. Statin therapy is typically recommended.`,
+        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us('ldl'))} is significantly elevated. This may indicate familial hypercholesterolemia. Statin therapy is typically recommended.`,
       });
     } else if (inputs.ldlC >= LDL_THRESHOLDS.high) {
       hasElevatedAtherogenicSuggestion = true;
@@ -408,7 +415,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'High LDL cholesterol',
-        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us)} is high. Consider lifestyle modifications and discuss medication options.`,
+        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us('ldl'))} is high. Consider lifestyle modifications and discuss medication options.`,
       });
     } else if (inputs.ldlC >= LDL_THRESHOLDS.borderline) {
       suggestions.push({
@@ -416,7 +423,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'info',
         title: 'Borderline high LDL cholesterol',
-        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us)} is borderline high. Optimal is <${formatDisplayValue('ldl', 2.59, us)} ${getDisplayLabel('ldl', us)} for most adults.`,
+        description: `Your LDL-c of ${fmtLdl(inputs.ldlC, us('ldl'))} is borderline high. Optimal is <${formatDisplayValue('ldl', 2.59, us('ldl'))} ${getDisplayLabel('ldl', us('ldl'))} for most adults.`,
       });
     }
   }
@@ -431,7 +438,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'urgent',
         title: 'Very high non-HDL cholesterol',
-        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us)} ${getDisplayLabel('ldl', us)} is very high. This reflects total atherogenic particle burden and indicates significantly elevated cardiovascular risk.`,
+        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us('ldl'))} ${getDisplayLabel('ldl', us('ldl'))} is very high. This reflects total atherogenic particle burden and indicates significantly elevated cardiovascular risk.`,
       });
     } else if (results.nonHdlCholesterol! >= NON_HDL_THRESHOLDS.high) {
       hasElevatedAtherogenicSuggestion = true;
@@ -440,7 +447,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'High non-HDL cholesterol',
-        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us)} ${getDisplayLabel('ldl', us)} is high. Consider lifestyle modifications to reduce cardiovascular risk.`,
+        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us('ldl'))} ${getDisplayLabel('ldl', us('ldl'))} is high. Consider lifestyle modifications to reduce cardiovascular risk.`,
       });
     } else if (results.nonHdlCholesterol! >= NON_HDL_THRESHOLDS.borderline) {
       suggestions.push({
@@ -448,7 +455,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'info',
         title: 'Borderline high non-HDL cholesterol',
-        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us)} ${getDisplayLabel('ldl', us)} is borderline. Optimal is <${formatDisplayValue('ldl', NON_HDL_THRESHOLDS.borderline, us)} ${getDisplayLabel('ldl', us)}.`,
+        description: `Your non-HDL cholesterol of ${formatDisplayValue('ldl', results.nonHdlCholesterol!, us('ldl'))} ${getDisplayLabel('ldl', us('ldl'))} is borderline. Optimal is <${formatDisplayValue('ldl', NON_HDL_THRESHOLDS.borderline, us('ldl'))} ${getDisplayLabel('ldl', us('ldl'))}.`,
       });
     }
   }
@@ -463,7 +470,7 @@ export function generateSuggestions(
       // Lipids (ApoB > non-HDL > LDL hierarchy, using on-treatment targets)
       if (lipidMarker) {
         const icon = lipidMarker.elevated ? '\u26A0\uFE0F' : '\u2705';
-        checklist.push(`${icon} ${lipidMarker.label}: ${fmtLipidMarkerValue(lipidMarker, lipidMarker.value, us)} \u2014 target \u2264${fmtLipidMarkerValue(lipidMarker, lipidMarker.target, us)}`);
+        checklist.push(`${icon} ${lipidMarker.label}: ${fmtLipidMarkerValue(lipidMarker, lipidMarker.value, us(lipidMarkerMetric(lipidMarker)))} \u2014 target \u2264${fmtLipidMarkerValue(lipidMarker, lipidMarker.target, us(lipidMarkerMetric(lipidMarker)))}`);
       } else {
         checklist.push('\u2753 Lipids \u2014 not tested (consider getting ApoB or a lipid panel)');
       }
@@ -486,7 +493,7 @@ export function generateSuggestions(
       // HbA1c
       if (inputs.hba1c !== undefined) {
         const onTarget = inputs.hba1c < HBA1C_THRESHOLDS.prediabetes;
-        checklist.push(`${onTarget ? '\u2705' : '\u26A0\uFE0F'} HbA1c: ${fmtHba1c(inputs.hba1c, us)} \u2014 target <${fmtHba1c(HBA1C_THRESHOLDS.prediabetes, us)}`);
+        checklist.push(`${onTarget ? '\u2705' : '\u26A0\uFE0F'} HbA1c: ${fmtHba1c(inputs.hba1c, us('hba1c'))} \u2014 target <${fmtHba1c(HBA1C_THRESHOLDS.prediabetes, us('hba1c'))}`);
       } else {
         checklist.push('\u2753 HbA1c \u2014 not tested');
       }
@@ -556,7 +563,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'High total cholesterol',
-        description: `Your total cholesterol of ${fmtTotalChol(inputs.totalCholesterol, us)} is high. Desirable is <${formatDisplayValue('total_cholesterol', TOTAL_CHOLESTEROL_THRESHOLDS.borderline, us)} ${getDisplayLabel('total_cholesterol', us)}.`,
+        description: `Your total cholesterol of ${fmtTotalChol(inputs.totalCholesterol, us('total_cholesterol'))} is high. Desirable is <${formatDisplayValue('total_cholesterol', TOTAL_CHOLESTEROL_THRESHOLDS.borderline, us('total_cholesterol'))} ${getDisplayLabel('total_cholesterol', us('total_cholesterol'))}.`,
       });
     } else if (inputs.totalCholesterol >= TOTAL_CHOLESTEROL_THRESHOLDS.borderline) {
       suggestions.push({
@@ -564,7 +571,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'info',
         title: 'Borderline high total cholesterol',
-        description: `Your total cholesterol of ${fmtTotalChol(inputs.totalCholesterol, us)} is borderline high. Desirable is <${formatDisplayValue('total_cholesterol', TOTAL_CHOLESTEROL_THRESHOLDS.borderline, us)} ${getDisplayLabel('total_cholesterol', us)}.`,
+        description: `Your total cholesterol of ${fmtTotalChol(inputs.totalCholesterol, us('total_cholesterol'))} is borderline high. Desirable is <${formatDisplayValue('total_cholesterol', TOTAL_CHOLESTEROL_THRESHOLDS.borderline, us('total_cholesterol'))} ${getDisplayLabel('total_cholesterol', us('total_cholesterol'))}.`,
       });
     }
   }
@@ -578,7 +585,7 @@ export function generateSuggestions(
         category: 'bloodwork',
         priority: 'attention',
         title: 'Low HDL cholesterol',
-        description: `Your HDL of ${fmtHdl(inputs.hdlC, us)} is below optimal (${us === 'si' ? lowThreshold.toFixed(2) : formatDisplayValue('hdl', lowThreshold, us)} ${getDisplayLabel('hdl', us)} for ${inputs.sex === 'male' ? 'men' : 'women'}). Exercise and healthy fats can help raise HDL.`,
+        description: `Your HDL of ${fmtHdl(inputs.hdlC, us('hdl'))} is below optimal (${us('hdl') === 'si' ? lowThreshold.toFixed(2) : formatDisplayValue('hdl', lowThreshold, us('hdl'))} ${getDisplayLabel('hdl', us('hdl'))} for ${inputs.sex === 'male' ? 'men' : 'women'}). Exercise and healthy fats can help raise HDL.`,
       });
     }
   }
@@ -591,7 +598,7 @@ export function generateSuggestions(
       category: 'bloodwork',
       priority: 'urgent',
       title: 'Very high triglycerides',
-      description: `Your triglycerides of ${fmtTrig(inputs.triglycerides, us)} are very high, increasing risk of pancreatitis. Immediate intervention is recommended.`,
+      description: `Your triglycerides of ${fmtTrig(inputs.triglycerides, us('triglycerides'))} are very high, increasing risk of pancreatitis. Immediate intervention is recommended.`,
     });
   }
 
@@ -642,7 +649,7 @@ export function generateSuggestions(
   // === Medication cascade suggestions ===
   // Only when lipids are above on-treatment targets (using resolved hierarchy marker)
   if (medications && lipidMarker?.elevated) {
-    const lipidReason = `Your ${lipidMarker.label} of ${fmtLipidMarkerValue(lipidMarker, lipidMarker.value, us)} is above target (\u2264${fmtLipidMarkerValue(lipidMarker, lipidMarker.target, us)}).`;
+    const lipidReason = `Your ${lipidMarker.label} of ${fmtLipidMarkerValue(lipidMarker, lipidMarker.value, us(lipidMarkerMetric(lipidMarker)))} is above target (\u2264${fmtLipidMarkerValue(lipidMarker, lipidMarker.target, us(lipidMarkerMetric(lipidMarker)))}).`;
 
     const statin = medications.statin;
     const statinDrug = statin?.drug;

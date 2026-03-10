@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import type { HealthResults, Suggestion } from '@roadmap/health-core';
 import {
   type UnitSystem,
+  type MetricType,
   formatDisplayValue,
   getDisplayLabel,
   formatHeightDisplay,
@@ -33,6 +34,7 @@ interface ResultsPanelProps {
   saveStatus?: 'idle' | 'saving' | 'saved' | 'first-saved' | 'error';
   emailConfirmStatus?: 'idle' | 'sent' | 'error';
   unitSystem: UnitSystem;
+  unitOverrides?: Partial<Record<MetricType, UnitSystem>>;
   hasUnsavedLongitudinal?: boolean;
   onSaveLongitudinal?: () => Promise<void>;
   isSavingLongitudinal?: boolean;
@@ -418,7 +420,7 @@ function ReminderSettings({
   );
 }
 
-export function ResultsPanel({ results, isValid, authState, saveStatus, emailConfirmStatus, unitSystem, hasUnsavedLongitudinal, onSaveLongitudinal, isSavingLongitudinal, onDeleteData, isDeleting, redirectFailed, reminderPreferences, onReminderPreferenceChange, onGlobalReminderOptout, sex }: ResultsPanelProps) {
+export function ResultsPanel({ results, isValid, authState, saveStatus, emailConfirmStatus, unitSystem, unitOverrides, hasUnsavedLongitudinal, onSaveLongitudinal, isSavingLongitudinal, onDeleteData, isDeleting, redirectFailed, reminderPreferences, onReminderPreferenceChange, onGlobalReminderOptout, sex }: ResultsPanelProps) {
   // Track highlighted (new/changed) suggestion IDs
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
   const [fadingOutIds, setFadingOutIds] = useState<Set<string>>(new Set());
@@ -538,8 +540,11 @@ export function ResultsPanel({ results, isValid, authState, saveStatus, emailCon
     );
   }
 
-  const weightUnit = getDisplayLabel('weight', unitSystem);
-  const ibwDisplay = formatDisplayValue('weight', results.idealBodyWeight, unitSystem);
+  /** Resolve effective unit system for a metric (per-field override or global default). */
+  const usFor = (metric: MetricType): UnitSystem => unitOverrides?.[metric] ?? unitSystem;
+
+  const weightUnit = getDisplayLabel('weight', usFor('weight'));
+  const ibwDisplay = formatDisplayValue('weight', results.idealBodyWeight, usFor('weight'));
 
   const urgentSuggestions = results.suggestions.filter(s => s.priority === 'urgent');
   const attentionSuggestions = results.suggestions.filter(s => s.priority === 'attention');
@@ -583,7 +588,7 @@ export function ResultsPanel({ results, isValid, authState, saveStatus, emailCon
             return (
               <div className="stat-card">
                 <span className="stat-label">ApoB</span>
-                <span className="stat-value">{formatDisplayValue('apob', results.apoB, unitSystem)} {getDisplayLabel('apob', unitSystem)}</span>
+                <span className="stat-value">{formatDisplayValue('apob', results.apoB, usFor('apob'))} {getDisplayLabel('apob', usFor('apob'))}</span>
                 <span className={`stat-status ${statusClassMap[label] || ''}`}>{label}</span>
               </div>
             );
@@ -592,7 +597,7 @@ export function ResultsPanel({ results, isValid, authState, saveStatus, emailCon
             return (
               <div className="stat-card">
                 <span className="stat-label">Non-HDL Cholesterol</span>
-                <span className="stat-value">{formatDisplayValue('ldl', results.nonHdlCholesterol, unitSystem)} {getDisplayLabel('ldl', unitSystem)}</span>
+                <span className="stat-value">{formatDisplayValue('ldl', results.nonHdlCholesterol, usFor('ldl'))} {getDisplayLabel('ldl', usFor('ldl'))}</span>
                 <span className={`stat-status ${statusClassMap[label] || ''}`}>{label}</span>
               </div>
             );
@@ -601,7 +606,7 @@ export function ResultsPanel({ results, isValid, authState, saveStatus, emailCon
             return (
               <div className="stat-card">
                 <span className="stat-label">LDL Cholesterol</span>
-                <span className="stat-value">{formatDisplayValue('ldl', results.ldlC, unitSystem)} {getDisplayLabel('ldl', unitSystem)}</span>
+                <span className="stat-value">{formatDisplayValue('ldl', results.ldlC, usFor('ldl'))} {getDisplayLabel('ldl', usFor('ldl'))}</span>
                 <span className={`stat-status ${statusClassMap[label] || ''}`}>{label}</span>
               </div>
             );

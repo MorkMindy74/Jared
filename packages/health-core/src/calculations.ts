@@ -1,5 +1,5 @@
 import type { HealthInputs, HealthResults, MedicationInputs, ScreeningInputs } from './types';
-import type { UnitSystem } from './units';
+import type { UnitSystem, MetricType } from './units';
 import { EGFR_THRESHOLDS, LPA_THRESHOLDS } from './units';
 import { generateSuggestions } from './suggestions';
 
@@ -143,7 +143,7 @@ export function getProteinRate(eGFR?: number): number {
 /**
  * Main calculation function - takes all inputs and returns all results
  */
-export function calculateHealthResults(inputs: HealthInputs, unitSystem?: UnitSystem, medications?: MedicationInputs, screenings?: ScreeningInputs): HealthResults {
+export function calculateHealthResults(inputs: HealthInputs, unitSystem?: UnitSystem, medications?: MedicationInputs, screenings?: ScreeningInputs, unitOverrides?: Partial<Record<MetricType, UnitSystem>>): HealthResults {
   // Calculate ideal body weight and protein target (always available with height + sex)
   const ibw = calculateIBW(inputs.heightCm, inputs.sex);
   const proteinTarget = calculateProteinTarget(ibw);
@@ -205,7 +205,7 @@ export function calculateHealthResults(inputs: HealthInputs, unitSystem?: UnitSy
   }
 
   // Generate personalized suggestions based on all inputs and results
-  results.suggestions = generateSuggestions(inputs, results, unitSystem, medications, screenings);
+  results.suggestions = generateSuggestions(inputs, results, unitSystem, medications, screenings, unitOverrides);
 
   return results;
 }
