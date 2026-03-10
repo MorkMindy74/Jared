@@ -54,6 +54,20 @@ async function apiCall<T>(
   }
 }
 
+/**
+ * Safely parse a JSON response, returning null if the content-type isn't JSON.
+ * Shopify's app proxy can return HTML (maintenance/error pages) with a 200 status.
+ * Calling response.json() on HTML throws a SyntaxError — this guard prevents that.
+ * Genuine malformed JSON (with correct content-type) still throws for Sentry reporting.
+ */
+async function parseJsonResponse<T>(response: Response): Promise<T | null> {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    return null;
+  }
+  return response.json() as Promise<T>;
+}
+
 /** Result from loading latest measurements: pre-fill inputs + raw measurements for "Previous:" labels. */
 export interface LatestMeasurementsResult {
   /** Only demographic/height fields for pre-filling the form. */
@@ -77,8 +91,8 @@ export async function loadLatestMeasurements(): Promise<LatestMeasurementsResult
     const response = await fetch(`${PROXY_PATH}/api/measurements`);
     if (!response.ok) return null;
 
-    const result: MeasurementsResponse = await response.json();
-    if (!result.success || !result.data) return null;
+    const result = await parseJsonResponse<MeasurementsResponse>(response);
+    if (!result || !result.success || !result.data) return null;
 
     // Build full inputs from measurements + profile
     const allInputs = measurementsToInputs(result.data, result.profile);
@@ -116,8 +130,8 @@ export async function loadMeasurementHistory(
     );
     if (!response.ok) return [];
 
-    const result: MeasurementsResponse = await response.json();
-    return result.success ? result.data || [] : [];
+    const result = await parseJsonResponse<MeasurementsResponse>(response);
+    return result?.success ? result.data || [] : [];
   } catch (error) {
     console.warn('Error loading history:', error);
     Sentry.captureException(error);
@@ -141,8 +155,8 @@ export async function addMeasurement(
     });
     if (!response.ok) return null;
 
-    const result: SingleMeasurementResponse = await response.json();
-    return result.success ? result.data || null : null;
+    const result = await parseJsonResponse<SingleMeasurementResponse>(response);
+    return result?.success ? result.data || null : null;
   } catch (error) {
     console.warn('Error adding measurement:', error);
     Sentry.captureException(error);
@@ -162,8 +176,8 @@ export async function deleteMeasurement(measurementId: string): Promise<boolean>
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error deleting measurement:', error);
     Sentry.captureException(error);
@@ -188,8 +202,8 @@ async function saveProfileChanges(profile: {
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error saving profile:', error);
     Sentry.captureException(error);
@@ -210,8 +224,8 @@ export async function loadAllHistory(
     );
     if (!response.ok) return [];
 
-    const result: MeasurementsResponse = await response.json();
-    return result.success ? result.data || [] : [];
+    const result = await parseJsonResponse<MeasurementsResponse>(response);
+    return result?.success ? result.data || [] : [];
   } catch (error) {
     console.warn('Error loading all history:', error);
     Sentry.captureException(error);
@@ -244,7 +258,8 @@ export async function deleteUserData(): Promise<{ success: boolean; error?: stri
       return { success: false, error: `Something went wrong (${response.status}). Please try again later.` };
     }
 
-    const result: { success: boolean } = await response.json();
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    if (!result) return { success: false, error: 'Server error. Please try again later.' };
     return { success: result.success, error: result.success ? undefined : 'Server error. Please try again later.' };
   } catch (error) {
     console.warn('Error deleting user data:', error);
@@ -273,8 +288,8 @@ export async function saveMedication(
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error saving medication:', error);
     Sentry.captureException(error);
@@ -297,8 +312,8 @@ export async function saveScreening(
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error saving screening:', error);
     Sentry.captureException(error);
@@ -321,8 +336,8 @@ export async function saveReminderPreference(
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error saving reminder preference:', error);
     Sentry.captureException(error);
@@ -342,8 +357,8 @@ export async function setGlobalReminderOptout(optout: boolean): Promise<boolean>
     });
     if (!response.ok) return false;
 
-    const result: { success: boolean } = await response.json();
-    return result.success;
+    const result = await parseJsonResponse<{ success: boolean }>(response);
+    return result?.success ?? false;
   } catch (error) {
     console.warn('Error setting global reminder optout:', error);
     Sentry.captureException(error);
@@ -362,8 +377,8 @@ export async function sendWelcomeEmail(): Promise<{ success: boolean }> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sendWelcomeEmail: true }),
       });
-      const result: { success: boolean } = await response.json();
-      return result;
+      const result = await parseJsonResponse<{ success: boolean }>(response);
+      return result ?? { success: false };
     },
     'Error sending welcome email',
     { success: false },
@@ -381,8 +396,8 @@ export async function sendReportEmail(): Promise<{ success: boolean; error?: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sendReportEmail: true }),
       });
-      const result: { success: boolean; error?: string } = await response.json();
-      return result;
+      const result = await parseJsonResponse<{ success: boolean; error?: string }>(response);
+      return result ?? { success: false, error: 'Network error' };
     },
     'Error sending report email',
     { success: false, error: 'Network error' },
@@ -400,8 +415,8 @@ export async function getReportHtml(): Promise<{ success: boolean; html?: string
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ getReportHtml: true }),
       });
-      const result: { success: boolean; html?: string; error?: string } = await response.json();
-      return result;
+      const result = await parseJsonResponse<{ success: boolean; html?: string; error?: string }>(response);
+      return result ?? { success: false, error: 'Network error' };
     },
     'Error fetching report HTML',
     { success: false, error: 'Network error' },
@@ -423,8 +438,8 @@ export async function sendFeedback(
         body: JSON.stringify({ email, message, website: '' }),
       });
       if (!response.ok) return false;
-      const result: { success: boolean } = await response.json();
-      return result.success;
+      const result = await parseJsonResponse<{ success: boolean }>(response);
+      return result?.success ?? false;
     },
     'Error sending feedback',
     false,

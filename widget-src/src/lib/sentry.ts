@@ -92,6 +92,14 @@ export function initSentry() {
       // Third-party fetch interceptors (Appstle Bundles) create unhandled rejections
       // from our fetch calls. Our api.ts already catches and handles these.
       /Failed to fetch/,
+      // Firefox's equivalent of "Failed to fetch" — network unavailable or blocked.
+      /NetworkError when attempting to fetch resource/,
+      // iOS WebKit DOMException SYNTAX_ERR (code 12) — browser-level DOM noise
+      // observed on iPad/Chrome Mobile iOS. Not caused by our code.
+      /The string did not match the expected pattern/,
+      // AbortError from user navigating away during an in-flight fetch request.
+      // Normal browser behavior — not a real error.
+      /The operation was aborted/,
       // DuckDuckGo Privacy Browser injects feature registry code into pages;
       // these errors are from their content scripts, not our code.
       /feature named `.+` was not found/,
