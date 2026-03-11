@@ -42,10 +42,13 @@
     </div>
     <div class="health-tool-content">
       <div class="health-tool-left">
-        <!-- Single block matching approx stage-1 profile form height (Units + Sex + Height) -->
-        <div class="skeleton-block" style="height:220px"></div>
+        <!-- Matches stage-1 profile form: section padding + Units + Sex + Height fields -->
+        <div class="skeleton-block" style="height:280px"></div>
       </div>
       <div class="health-tool-right">
+        {% unless customer %}
+        <div class="skeleton-block" style="height:52px"></div>
+        {% endunless %}
         <div class="skeleton-block" style="height:220px"></div>
       </div>
     </div>

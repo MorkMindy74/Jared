@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { HealthInputs, ScreeningInputs } from '@roadmap/health-core';
 import {
   type UnitSystem,
@@ -182,10 +182,17 @@ export function InputPanel({
   const prefillComplete = !!(inputs.sex && inputs.heightCm && inputs.birthYear && inputs.birthYear >= 1900 && inputs.birthMonth);
 
   // Animated collapse: delay before collapsing so user sees their input registered
+  // Skip animation on mount if already collapsed (returning users) to avoid CLS
   const [collapseAnimating, setCollapseAnimating] = useState(false);
   const [collapsed, setCollapsed] = useState(prefillComplete);
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      // On mount: skip animation — initial useState values are already correct
+      return;
+    }
     if (prefillComplete && !prefillExpanded) {
       setCollapseAnimating(true);
       const timer = setTimeout(() => {

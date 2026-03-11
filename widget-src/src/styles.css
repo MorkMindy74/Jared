@@ -717,6 +717,17 @@ input[type="number"] {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Clickable suggestion body: entire title+description area toggles evidence */
+.suggestion-card-clickable .suggestion-body,
+.suggestion-subsection-clickable .suggestion-body {
+  cursor: pointer;
+}
+
+.suggestion-card-clickable .suggestion-body:hover .suggestion-title,
+.suggestion-subsection-clickable .suggestion-body:hover .suggestion-title {
+  color: var(--color-primary);
+}
+
 .suggestion-card:last-child {
   margin-bottom: 0;
 }

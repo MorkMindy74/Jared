@@ -576,6 +576,20 @@ export function HealthTool() {
     }
   }, [tabs, activeTab]);
 
+  // Auto-navigate to Results tab on mobile when first suggestions appear
+  const hasAutoNavigatedRef = useRef(false);
+  const prevSuggestionsCountRef = useRef(results?.suggestions?.length ?? 0);
+  useEffect(() => {
+    if (!isMobile || hasAutoNavigatedRef.current) return;
+    const count = results?.suggestions?.length ?? 0;
+    // Trigger when suggestions first appear (from 0 to >0)
+    if (prevSuggestionsCountRef.current === 0 && count > 0) {
+      hasAutoNavigatedRef.current = true;
+      setActiveTab('results');
+    }
+    prevSuggestionsCountRef.current = count;
+  }, [isMobile, results?.suggestions?.length]);
+
   const handleReminderPreferenceChange = useCallback(async (category: string, enabled: boolean) => {
     // Optimistic update
     setReminderPreferences(prev => {

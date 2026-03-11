@@ -86,23 +86,24 @@ const priorityColors = {
   urgent: 'suggestion-urgent',
 };
 
-function SuggestionEvidence({ suggestion }: { suggestion: Suggestion }) {
-  const [open, setOpen] = useState(false);
-  const hasEvidence = suggestion.reason || (suggestion.references && suggestion.references.length > 0);
+function suggestionHasEvidence(suggestion: Suggestion): boolean {
+  return !!(suggestion.reason || (suggestion.references && suggestion.references.length > 0));
+}
+
+function SuggestionEvidence({ suggestion, open, onToggle }: { suggestion: Suggestion; open: boolean; onToggle: () => void }) {
+  const hasEvidence = suggestionHasEvidence(suggestion);
   const hasGuidelines = suggestion.guidelines && suggestion.guidelines.length > 0;
 
   if (!hasGuidelines && !hasEvidence) return null;
-
-  const toggle = () => setOpen(o => !o);
 
   return (
     <div className="suggestion-evidence-section">
       <div className="suggestion-evidence-row">
         {hasGuidelines && suggestion.guidelines!.map(g => (
-          <span key={g} className={`guideline-tag${hasEvidence ? ' guideline-tag-clickable' : ''}`} onClick={hasEvidence ? toggle : undefined}>{g}</span>
+          <span key={g} className={`guideline-tag${hasEvidence ? ' guideline-tag-clickable' : ''}`} onClick={hasEvidence ? onToggle : undefined}>{g}</span>
         ))}
         {hasEvidence && (
-          <span className="evidence-toggle" onClick={toggle}>{open ? '▾' : '▸'} Why this suggestion?</span>
+          <span className="evidence-toggle" onClick={onToggle}>{open ? '▾' : '▸'} Why this suggestion?</span>
         )}
       </div>
       {open && hasEvidence && (
@@ -124,14 +125,18 @@ function SuggestionEvidence({ suggestion }: { suggestion: Suggestion }) {
 }
 
 function SuggestionCard({ suggestion, highlighted, fadingOut }: { suggestion: Suggestion; highlighted?: boolean; fadingOut?: boolean }) {
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const hasEvidence = suggestionHasEvidence(suggestion);
   const isSupplementCard = suggestion.category === 'supplements';
   const isSkinCard = suggestion.category === 'skin';
   const isSpecialCard = isSupplementCard || isSkinCard;
   const highlightClass = fadingOut ? ' suggestion-highlight suggestion-fade-out'
     : highlighted ? ' suggestion-highlight' : '';
 
+  const toggleEvidence = hasEvidence ? () => setEvidenceOpen(o => !o) : undefined;
+
   return (
-    <div className={`suggestion-card ${priorityColors[suggestion.priority]}${isSupplementCard ? ' supplement-card' : ''}${isSkinCard ? ' skin-card' : ''}${highlightClass}`}>
+    <div className={`suggestion-card ${priorityColors[suggestion.priority]}${isSupplementCard ? ' supplement-card' : ''}${isSkinCard ? ' skin-card' : ''}${highlightClass}${hasEvidence ? ' suggestion-card-clickable' : ''}`}>
       {!isSpecialCard && (
         <div className="suggestion-header">
           <span className={`suggestion-badge ${priorityColors[suggestion.priority]}`}>
@@ -140,17 +145,46 @@ function SuggestionCard({ suggestion, highlighted, fadingOut }: { suggestion: Su
           </span>
         </div>
       )}
-      <h4 className="suggestion-title">
-        {suggestion.link ? (
-          <a href={suggestion.link} target="_blank" rel="noopener noreferrer">
-            {suggestion.title}
-          </a>
-        ) : (
-          suggestion.title
-        )}
-      </h4>
-      <p className="suggestion-desc">{suggestion.description}</p>
-      <SuggestionEvidence suggestion={suggestion} />
+      <div className="suggestion-body" onClick={toggleEvidence}>
+        <h4 className="suggestion-title">
+          {suggestion.link ? (
+            <a href={suggestion.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+              {suggestion.title}
+            </a>
+          ) : (
+            suggestion.title
+          )}
+        </h4>
+        <p className="suggestion-desc">{suggestion.description}</p>
+      </div>
+      {hasEvidence && <SuggestionEvidence suggestion={suggestion} open={evidenceOpen} onToggle={toggleEvidence!} />}
+    </div>
+  );
+}
+
+function GroupedSubsection({ suggestion, highlighted, fadingOut }: { suggestion: Suggestion; highlighted?: boolean; fadingOut?: boolean }) {
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const hasEvidence = suggestionHasEvidence(suggestion);
+  const highlightClass = fadingOut ? ' suggestion-highlight suggestion-fade-out'
+    : highlighted ? ' suggestion-highlight' : '';
+
+  const toggleEvidence = hasEvidence ? () => setEvidenceOpen(o => !o) : undefined;
+
+  return (
+    <div className={`suggestion-subsection${highlightClass}${hasEvidence ? ' suggestion-subsection-clickable' : ''}`}>
+      <div className="suggestion-body" onClick={toggleEvidence}>
+        <h4 className="suggestion-title">
+          {suggestion.link ? (
+            <a href={suggestion.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+              {suggestion.title}
+            </a>
+          ) : (
+            suggestion.title
+          )}
+        </h4>
+        <p className="suggestion-desc">{suggestion.description}</p>
+      </div>
+      {hasEvidence && <SuggestionEvidence suggestion={suggestion} open={evidenceOpen} onToggle={toggleEvidence!} />}
     </div>
   );
 }
@@ -169,17 +203,9 @@ function GroupedSuggestionCard({ suggestions, category, highlightedIds, fadingOu
         </span>
       </div>
       <div className="grouped-subsections">
-        {suggestions.map((s) => {
-          const highlightClass = fadingOutIds?.has(s.id) ? ' suggestion-highlight suggestion-fade-out'
-            : highlightedIds?.has(s.id) ? ' suggestion-highlight' : '';
-          return (
-            <div key={s.id} className={`suggestion-subsection${highlightClass}`}>
-              <h4 className="suggestion-title">{s.title}</h4>
-              <p className="suggestion-desc">{s.description}</p>
-              <SuggestionEvidence suggestion={s} />
-            </div>
-          );
-        })}
+        {suggestions.map((s) => (
+          <GroupedSubsection key={s.id} suggestion={s} highlighted={highlightedIds?.has(s.id)} fadingOut={fadingOutIds?.has(s.id)} />
+        ))}
       </div>
     </div>
   );
