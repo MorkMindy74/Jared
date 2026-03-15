@@ -2,6 +2,19 @@
 
 A personalized health management tool embedded in a Shopify storefront. Users input their health metrics (body measurements, blood tests) and receive real-time personalized suggestions to discuss with their healthcare provider. Health data is stored as immutable time-series records, allowing users to track their metrics over time.
 
+![Jared banner](docs/jared-banner.svg)
+
+## Overview
+
+Jared combines a Shopify storefront widget, a shared health-calculation engine, and a secure Remix/Supabase backend so customers can:
+
+- capture biomarkers and body measurements in real time
+- receive structured preventive suggestions to discuss with a clinician
+- maintain an immutable longitudinal health history
+- manage reminders for screenings, blood tests, and medication review
+
+![Jared architecture](docs/jared-architecture.svg)
+
 ## Features
 
 - **Two-panel interface**: Input form on the left, live results on the right

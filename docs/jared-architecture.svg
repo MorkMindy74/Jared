@@ -1,0 +1,86 @@
+<svg width="1280" height="760" viewBox="0 0 1280 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="760" rx="32" fill="#F8FAFC"/>
+  <text x="72" y="88" fill="#0F172A" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="800">
+    Jared architecture at a glance
+  </text>
+  <text x="72" y="128" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="24">
+    Shopify storefront health capture, shared decision logic, and secure longitudinal storage.
+  </text>
+
+  <rect x="72" y="190" width="280" height="200" rx="24" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/>
+  <text x="104" y="246" fill="#0C4A6E" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">
+    Shopify storefront
+  </text>
+  <text x="104" y="292" fill="#0C4A6E" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Health widget
+  </text>
+  <text x="104" y="328" fill="#0C4A6E" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Guest local storage
+  </text>
+  <text x="104" y="364" fill="#0C4A6E" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • App embed sync
+  </text>
+
+  <rect x="500" y="150" width="280" height="280" rx="24" fill="#DCFCE7" stroke="#22C55E" stroke-width="2"/>
+  <text x="532" y="206" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">
+    Shared health core
+  </text>
+  <text x="532" y="252" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Calculations
+  </text>
+  <text x="532" y="288" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Suggestions
+  </text>
+  <text x="532" y="324" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Reminders
+  </text>
+  <text x="532" y="360" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Unit conversions
+  </text>
+  <text x="532" y="396" fill="#14532D" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Validation schemas
+  </text>
+
+  <rect x="928" y="190" width="280" height="200" rx="24" fill="#FCE7F3" stroke="#EC4899" stroke-width="2"/>
+  <text x="960" y="246" fill="#831843" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">
+    Remix backend
+  </text>
+  <text x="960" y="292" fill="#831843" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • HMAC app proxy auth
+  </text>
+  <text x="960" y="328" fill="#831843" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Measurement APIs
+  </text>
+  <text x="960" y="364" fill="#831843" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Reminder delivery
+  </text>
+
+  <rect x="392" y="514" width="500" height="164" rx="24" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="426" y="570" fill="#78350F" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">
+    Supabase persistence
+  </text>
+  <text x="426" y="614" fill="#78350F" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Immutable measurements and profiles
+  </text>
+  <text x="426" y="648" fill="#78350F" font-family="Segoe UI, Arial, sans-serif" font-size="22">
+    • Row-level security, audit logs, reminder preferences
+  </text>
+
+  <path d="M352 290H500" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M780 290H928" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M640 430V514" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
+
+  <polygon points="484,282 500,290 484,298" fill="#0F172A"/>
+  <polygon points="912,282 928,290 912,298" fill="#0F172A"/>
+  <polygon points="632,498 640,514 648,498" fill="#0F172A"/>
+
+  <text x="388" y="270" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">
+    live inputs
+  </text>
+  <text x="820" y="270" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">
+    secure APIs
+  </text>
+  <text x="660" y="480" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">
+    storage
+  </text>
+</svg>
