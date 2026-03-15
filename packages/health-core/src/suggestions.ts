@@ -107,8 +107,8 @@ export function generateSuggestions(
     priority: 'info',
     title: `Daily protein target: ${results.proteinTarget}g`,
     description: isCkd
-      ? `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for ${results.proteinTarget}g of protein daily (1.0g per kg, adjusted for kidney function). Discuss with your doctor.`
-      : `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for ${results.proteinTarget}g of protein daily. This supports muscle maintenance and metabolic health.`,
+      ? `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for about ${results.proteinTarget}g of protein daily (0.8g per kg, adjusted for kidney function). Discuss this with your doctor or renal dietitian.`
+      : `Based on your ideal body weight of ${fmtWeight(results.idealBodyWeight, us('weight'))}, aim for about ${results.proteinTarget}g of protein daily (1.6g per kg). This supports muscle maintenance, training adaptation, and healthy aging.`,
   });
 
   // Low salt — age-dependent threshold (matches BP target age cutoff)
@@ -199,7 +199,9 @@ export function generateSuggestions(
     const waistElevated = whr !== undefined && whr >= 0.5;
     const hasSecondaryCriteria = hba1cElevated || trigsElevated || bpElevated || waistElevated;
 
-    if (medications && (results.bmi > 28 || hasSecondaryCriteria)) {
+    const pharmacotherapyEligible = results.bmi >= 30 || (results.bmi >= 27 && hasSecondaryCriteria);
+
+    if (medications && pharmacotherapyEligible) {
       // Weight & diabetes medication cascade (GLP-1 → escalate → SGLT2i → Metformin)
       const glp1 = medications.glp1;
       const glp1Drug = glp1?.drug;
@@ -228,8 +230,8 @@ export function generateSuggestions(
           id: 'weight-med-glp1',
           category: 'medication',
           priority: 'attention',
-          title: 'Consider a GLP-1 medication',
-          description: `With ${reasonStr}, you may benefit from discussing Tirzepatide (preferred) or Semaglutide with your doctor. These medications support weight management and metabolic health.`,
+          title: 'Consider obesity pharmacotherapy',
+          description: `With ${reasonStr}, discuss whether an anti-obesity medication such as semaglutide or tirzepatide is appropriate for you. Eligibility, contraindications, side effects, cost, and pregnancy plans all matter.`,
         });
       } else if (glp1Handled) {
         // Step 2: GLP-1 Escalation (dose increase or switch to tirzepatide)
@@ -256,8 +258,8 @@ export function generateSuggestions(
               id: 'weight-med-glp1-switch',
               category: 'medication',
               priority: 'attention',
-              title: 'Consider switching to Tirzepatide',
-              description: 'Tirzepatide (Mounjaro/Zepbound) may be more effective for weight management. Discuss switching with your doctor.',
+              title: 'Consider switching incretin therapy',
+              description: 'If response is suboptimal, discuss whether switching to a more effective incretin option such as tirzepatide is appropriate for your goals and risk profile.',
             });
           }
         } else {
@@ -284,27 +286,30 @@ export function generateSuggestions(
           }
         }
       }
-    } else if (!medications) {
+    } else if (!medications && pharmacotherapyEligible) {
       // Standalone GLP-1 suggestion (when medications not tracked)
-      if (results.bmi > 28) {
+      if (results.bmi >= 30) {
         suggestions.push({
           id: 'weight-glp1',
           category: 'medication',
           priority: 'attention',
           title: 'Weight management medication',
-          description: 'With a BMI over 28, you may benefit from discussing Tirzepatide (preferred) or Semaglutide with your doctor, in addition to diet, exercise, and sleep optimization.',
+          description: 'With obesity, you may benefit from discussing anti-obesity medication options such as semaglutide or tirzepatide with your doctor, alongside diet, exercise, and sleep.',
         });
-      } else if (whr !== undefined || trigsElevated) {
-        // BMI 25-28: waist must be elevated (guaranteed by bmiIsElevated when whr defined) or trigs elevated
-        const reason = whr !== undefined
-          ? 'elevated BMI and waist measurements'
-          : 'elevated BMI and triglycerides';
+      } else {
+        const reason = waistElevated
+          ? 'BMI in the treatment range plus elevated waist measurements'
+          : trigsElevated
+            ? 'BMI in the treatment range plus elevated triglycerides'
+            : bpElevated
+              ? 'BMI in the treatment range plus elevated blood pressure'
+              : 'BMI in the treatment range plus metabolic risk factors';
         suggestions.push({
           id: 'weight-glp1',
           category: 'medication',
           priority: 'attention',
           title: 'Weight management medication',
-          description: `With ${reason}, you may benefit from discussing Tirzepatide (preferred) or Semaglutide with your doctor, in addition to diet, exercise, and sleep optimization.`,
+          description: `With ${reason}, you may benefit from discussing anti-obesity medication options such as semaglutide or tirzepatide with your doctor, in addition to diet, exercise, and sleep.`,
         });
       }
     }
@@ -477,8 +482,8 @@ export function generateSuggestions(
 
       // Blood pressure
       if (inputs.systolicBp !== undefined && inputs.diastolicBp !== undefined) {
-        const onTarget = inputs.systolicBp < 120 && inputs.diastolicBp < 80;
-        checklist.push(`${onTarget ? '\u2705' : '\u26A0\uFE0F'} Blood pressure: ${inputs.systolicBp}/${inputs.diastolicBp} mmHg \u2014 target <120/80`);
+        const onTarget = inputs.systolicBp < 130 && inputs.diastolicBp < 80;
+        checklist.push(`${onTarget ? '\u2705' : '\u26A0\uFE0F'} Blood pressure: ${inputs.systolicBp}/${inputs.diastolicBp} mmHg \u2014 target <130/80`);
       } else {
         checklist.push('\u2753 Blood pressure \u2014 not entered');
       }
@@ -614,7 +619,7 @@ export function generateSuggestions(
     }
     const bpWhr = results.waistToHeightRatio;
     if (results.bmi !== undefined && (results.bmi >= 30 || (results.bmi >= 25 && bpWhr !== undefined && bpWhr >= 0.5))) {
-      bpExtraParagraphs.push('Weight loss is one of the most effective ways to lower blood pressure — even a 5% reduction can make a meaningful difference. GLP-1 medications (tirzepatide, semaglutide) can assist with both weight loss and blood pressure reduction.');
+        bpExtraParagraphs.push('Weight loss is one of the most effective ways to lower blood pressure — even a 5% reduction can make a meaningful difference. When obesity is present, anti-obesity medications may also help lower blood pressure through weight loss.');
     }
     const bpExtra = bpExtraParagraphs.length > 0 ? '\n\n' + bpExtraParagraphs.join('\n\n') : '';
 
@@ -635,15 +640,14 @@ export function generateSuggestions(
         description: `Your BP of ${sys}/${dia} mmHg indicates stage 2 hypertension. Medication is typically recommended at this level.\n\nLifestyle measures that also help: reduce sodium intake (<1,500mg/day), exercise regularly, and prioritize quality sleep.${bpExtra}`,
       });
     } else if (sys >= BP_THRESHOLDS.stage1Sys || dia > BP_THRESHOLDS.stage1Dia) {
-      const bpTarget = results.age !== undefined && results.age >= 65 ? '<130/80' : '<120/80';
-      suggestions.push({
-        id: 'bp-stage1',
-        category: 'blood_pressure',
-        priority: 'attention',
-        title: 'Stage 1 hypertension',
-        description: `Your BP of ${sys}/${dia} mmHg indicates stage 1 hypertension. Target is ${bpTarget}.\n\nKey lifestyle measures: reduce sodium intake (<1,500mg/day), exercise regularly (150+ min/week), and prioritize quality sleep (7-9 hours).${bpExtra}`,
-      });
-    }
+        suggestions.push({
+          id: 'bp-stage1',
+          category: 'blood_pressure',
+          priority: 'attention',
+          title: 'Stage 1 hypertension',
+          description: `Your BP of ${sys}/${dia} mmHg indicates stage 1 hypertension. For most adults, a practical treatment goal is below 130/80 mmHg, with lower systolic targets considered only if well tolerated.\n\nKey lifestyle measures: reduce sodium intake (<1,500mg/day), exercise regularly (150+ min/week), and prioritize quality sleep (7-9 hours).${bpExtra}`,
+        });
+      }
   }
 
   // === Medication cascade suggestions ===
@@ -830,8 +834,8 @@ export function generateSuggestions(
       return null; // Fall through to default logic
     }
 
-    // Colorectal (age 35-75)
-    if (age >= 35 && age <= 75) {
+    // Colorectal (age 45-75)
+    if (age >= 45 && age <= 75) {
       if (!screenings.colorectalMethod || screenings.colorectalMethod === 'not_yet_started') {
         suggestions.push({
           id: 'screening-colorectal',
@@ -983,8 +987,8 @@ export function generateSuggestions(
     }
 
     // === Bone density (DEXA) screening ===
-    // Separate section from cancer screening — women ≥50, men ≥70
-    const dexaEligible = (sex === 'female' && age >= 50) || (sex === 'male' && age >= 70);
+    // Separate section from cancer screening — average-risk women ≥65
+    const dexaEligible = sex === 'female' && age >= 65;
 
     if (dexaEligible) {
       if (!screenings.dexaScreening || screenings.dexaScreening === 'not_yet_started') {
@@ -1020,34 +1024,6 @@ export function generateSuggestions(
       }
     }
   }
-
-  // === Supplement suggestions (always shown) ===
-  suggestions.push(
-    {
-      id: 'supplement-microvitamin',
-      category: 'supplements',
-      priority: 'info',
-      title: 'MicroVitamin+',
-      description: 'Daily all-in-one to support mental function, skin elasticity, exercise performance, and gut health.',
-      link: 'https://drstanfield.com/products/microvitamin-plus',
-    },
-    {
-      id: 'supplement-omega3',
-      category: 'supplements',
-      priority: 'info',
-      title: 'Omega-3',
-      description: 'Essential fatty acids for cardiovascular and brain health.',
-      link: 'https://amzn.to/4kgwthG',
-    },
-    {
-      id: 'supplement-sleep',
-      category: 'supplements',
-      priority: 'info',
-      title: 'Sleep by Dr Brad',
-      description: 'Support for quality sleep and recovery.',
-      link: 'https://drstanfield.com/products/sleep',
-    },
-  );
 
   // === Skin health suggestions (age 18+) ===
   if (results.age === undefined || results.age >= 18) {

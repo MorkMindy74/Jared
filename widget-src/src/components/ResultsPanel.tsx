@@ -372,7 +372,7 @@ function getVisibleCategories(sex?: 'male' | 'female', age?: number): ReminderCa
     // DEXA: female ≥50, male ≥70
     if (cat === 'screening_dexa') {
       if (age === undefined) return false;
-      return (sex === 'female' && age >= 50) || (sex === 'male' && age >= 70);
+      return sex === 'female' && age >= 65;
     }
     return true;
   });

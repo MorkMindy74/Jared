@@ -12,7 +12,7 @@ const minimalInputs: HealthInputs = {
 const minimalResults: HealthResults = {
   heightCm: 180,
   idealBodyWeight: 78.0,
-  proteinTarget: 94,
+  proteinTarget: 125,
   suggestions: [],
 };
 
@@ -39,7 +39,7 @@ const fullInputs: HealthInputs = {
 const fullResults: HealthResults = {
   heightCm: 175,
   idealBodyWeight: 67.7,
-  proteinTarget: 81,
+  proteinTarget: 108,
   bmi: 26.8,
   waistToHeightRatio: 0.51,
   nonHdlCholesterol: 4.6,
@@ -53,10 +53,9 @@ const fullResults: HealthResults = {
 const sampleSuggestions: Suggestion[] = [
   { id: 'urgent-1', category: 'medication', priority: 'urgent', title: 'Consider statin therapy', description: 'Your ApoB is above target.' },
   { id: 'attention-1', category: 'nutrition', priority: 'attention', title: 'Reduce sodium intake', description: 'Your blood pressure is elevated.' },
-  { id: 'info-1', category: 'nutrition', priority: 'info', title: 'Protein target', description: 'Aim for 81g of protein per day.' },
+  { id: 'info-1', category: 'nutrition', priority: 'info', title: 'Protein target', description: 'Aim for 108g of protein per day.' },
   { id: 'info-2', category: 'exercise', priority: 'info', title: 'Exercise', description: '150+ minutes cardio per week.' },
   { id: 'info-3', category: 'sleep', priority: 'info', title: 'Sleep', description: '7-9 hours per night.' },
-  { id: 'supplement-1', category: 'supplements', priority: 'info', title: 'MicroVitamin+', description: 'Daily all-in-one supplement.', link: 'https://example.com' },
 ];
 
 describe('buildWelcomeEmailHtml', () => {
@@ -69,7 +68,7 @@ describe('buildWelcomeEmailHtml', () => {
     expect(html).toContain('78');
     expect(html).toContain('kg');
     expect(html).toContain('Protein Target');
-    expect(html).toContain('94g/day');
+    expect(html).toContain('125g/day');
     expect(html).toContain('180 cm');
     expect(html).toContain('Health Snapshot');
     // Should NOT contain entered metrics section (no longitudinal data entered)
@@ -105,19 +104,13 @@ describe('buildWelcomeEmailHtml', () => {
     expect(html).toContain('Diastolic BP');
   });
 
-  it('groups suggestions by priority with separate Supplements section', () => {
+  it('groups suggestions by priority', () => {
     const html = buildWelcomeEmailHtml(fullInputs, fullResults, sampleSuggestions, 'si', 'Test');
 
     // Priority group headings
     expect(html).toContain('Requires Attention');
     expect(html).toContain('Next Steps');
     expect(html).toContain('Foundation');
-    expect(html).toContain('Supplements');
-
-    // Supplements use teal color
-    expect(html).toContain('#00A38B');
-    expect(html).toContain('MicroVitamin+');
-
     // Suggestion content
     expect(html).toContain('Consider statin therapy');
     expect(html).toContain('Reduce sodium intake');
@@ -218,7 +211,7 @@ describe('buildWelcomeEmailHtml', () => {
     const html = buildWelcomeEmailHtml(fullInputs, fullResults, [], 'conventional', null, undefined, 40);
 
     // Age 40 → target < 120 mmHg systolic
-    expect(html).toContain('< 120 mmHg');
+    expect(html).toContain('< 130 mmHg');
   });
 
   it('shows age-dependent BP range for age >= 65', () => {
@@ -393,8 +386,8 @@ describe('buildWelcomeEmailHtml', () => {
     const html = buildWelcomeEmailHtml(minimalInputs, minimalResults, [], 'si', null);
 
     expect(html).toContain('Protein Target');
-    expect(html).toContain('94g/day');
-    expect(html).toContain('1.2g per kg IBW');
+    expect(html).toContain('125g/day');
+    expect(html).toContain('1.6g per kg IBW');
   });
 
   it('snapshot shows reduced protein rate when eGFR < 45', () => {
@@ -404,7 +397,7 @@ describe('buildWelcomeEmailHtml', () => {
     };
     const html = buildWelcomeEmailHtml(fullInputs, lowEgfrResults, [], 'si', null);
 
-    expect(html).toContain('1.0g per kg IBW');
+    expect(html).toContain('0.8g per kg IBW');
   });
 
   // --- Lipid cascade tests ---

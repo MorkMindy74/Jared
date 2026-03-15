@@ -529,8 +529,8 @@ export function HealthTool() {
     const whr = (ei.waistCm !== undefined && ei.heightCm !== undefined)
       ? ei.waistCm / ei.heightCm : undefined;
     let weightCascadeVisible = false;
-    if (bmi !== undefined && bmi > 25) {
-      if (bmi > 28) {
+    if (bmi !== undefined && bmi >= 27) {
+      if (bmi >= 30) {
         weightCascadeVisible = true;
       } else {
         weightCascadeVisible =
@@ -547,14 +547,13 @@ export function HealthTool() {
     if (inputs.birthYear) {
       const age = calculateAge(inputs.birthYear, inputs.birthMonth ?? 1);
       screeningVisible =
-        age >= 35 ||
+        age >= 45 ||
         (inputs.sex === 'female' && age >= 25) ||
         (inputs.sex === 'female' && age >= 40) ||
         (age >= 50 && age <= 80) ||
         (inputs.sex === 'male' && age >= 45) ||
         (inputs.sex === 'female' && age >= 45) ||
-        (inputs.sex === 'female' && age >= 50) || // DEXA
-        (inputs.sex === 'male' && age >= 70);     // DEXA
+        (inputs.sex === 'female' && age >= 65);   // DEXA
     }
 
     return [

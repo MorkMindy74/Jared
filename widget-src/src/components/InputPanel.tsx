@@ -1248,7 +1248,7 @@ export function InputPanel({
         };
 
         const hasAnyEligible =
-          age >= 35 || // colorectal
+          age >= 45 || // colorectal
           (sex === 'female' && age >= 25) || // cervical
           (sex === 'female' && age >= 40) || // breast
           (age >= 50 && age <= 80) || // lung
@@ -1266,15 +1266,9 @@ export function InputPanel({
             </p>
 
             {/* Colorectal (age 35-85, all genders) */}
-            {age >= 35 && age <= 85 && (
+            {age >= 45 && age <= 85 && (
               <div className="screening-group">
                 <h4>Colorectal</h4>
-                {age < 45 && (
-                  <div className="screening-notice">
-                    Note: ACS guidelines recommend starting colorectal screening at age 45. Dr Brad personally starts at age 35 due to increasing rates of colorectal cancer in younger adults. Discuss timing with your doctor.
-                  </div>
-                )}
-
                 {age <= 75 ? (
                   <>
                     <div className="health-field">
@@ -1616,7 +1610,7 @@ export function InputPanel({
         if (age === undefined) return null;
 
         const sex = inputs.sex;
-        const dexaEligible = (sex === 'female' && age >= 50) || (sex === 'male' && age >= 70);
+        const dexaEligible = sex === 'female' && age >= 65;
         if (!dexaEligible) return null;
 
         const scr = screeningsToInputs(screenings);

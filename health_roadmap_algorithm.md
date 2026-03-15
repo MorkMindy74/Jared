@@ -225,9 +225,8 @@ LDL thresholds + 30 mg/dL for VLDL.
 | Stage 2 | 140 | 90 |
 | Crisis | 180 | 120 |
 
-**Age-dependent target** (based on SPRINT 2015 + ESPRIT 2024):
-- Age < 65: < 120/80
-- Age >= 65: < 130/80
+**Usual treatment target**:
+- Most adults: < 130/80 when tolerated
 
 ### eGFR (mL/min/1.73m^2)
 
@@ -278,7 +277,7 @@ Source: `suggestions.ts` -> `generateSuggestions()`
 
 | ID | Category | What | Evidence |
 |----|----------|------|----------|
-| `protein-target` | nutrition | Daily protein target (CKD-adjusted if eGFR < 45) | ISSN 2017 |
+| `protein-target` | nutrition | Daily protein target (CKD-adjusted if eGFR < 60) | ISSN 2017 + KDIGO 2024 |
 | `fiber` | nutrition | 25-35g fiber daily | Reynolds 2019 |
 | `exercise` | exercise | 150+ min cardio + 2-3 resistance sessions/week | Physical Activity Guidelines 2018 |
 | `sleep` | sleep | 7-9 hours nightly | Cappuccio 2010 |
@@ -320,7 +319,7 @@ Each marker has three tiers (borderline/high/very high) using the thresholds in 
 
 **Elevated Lp(a) checklist** (modifiable risk factors):
 - Lipids (ApoB > non-HDL > LDL, on-treatment targets)
-- Blood pressure (target < 120/80)
+- Blood pressure (target < 130/80 for most adults)
 - BMI (target < 25; shows ✅ when BMI 25–29.9 with WHtR < 0.5)
 - HbA1c (target < 38.8 mmol/mol)
 - Medication status (statin, ezetimibe, PCSK9i — when tracked)
@@ -341,7 +340,7 @@ Each marker has three tiers (borderline/high/very high) using the thresholds in 
 | `bp-stage2` | sys >= 140 OR dia >= 90 | urgent |
 | `bp-stage1` | sys >= 130 OR dia > 80 | attention |
 
-Stage 1 shows age-dependent target: < 120/80 for age < 65, < 130/80 for age >= 65.
+Stage 1 shows an individualized target, with < 130/80 appropriate for most adults when tolerated.
 
 Stage 1 and 2 include conditional extra paragraphs:
 - If eGFR >= 45: potassium recommendation
@@ -589,13 +588,11 @@ Source: `suggestions.ts`
 | `skin-retinoid` | Topical retinoid | Adapalene 0.3% or tretinoin 0.05%, 2-3 nights/week. **Must not use during pregnancy.** |
 | `skin-advanced` | Advanced skin treatments | Red light therapy, fractional laser, IPL, microneedling |
 
-### Supplements (always shown)
+### Supplements
 
 | ID | Title | Link | Notes |
 |----|-------|------|-------|
-| `supplement-microvitamin` | MicroVitamin+ | drstanfield.com | COSMOS trial (Baker 2023) |
-| `supplement-omega3` | Omega-3 | Amazon | CV benefits (Bernasconi 2021) + cognitive synergy with B-complex (Jernerén 2015, Oulhaj 2016) |
-| `supplement-sleep` | Sleep by Dr Brad | drstanfield.com | Low-dose melatonin (Low 2020) |
+| `supplement-omega3` | Omega-3 | general supplement category | indication-specific evidence |
 
 ---
 
@@ -720,3 +717,4 @@ Automatic from `drug_name`:
 ### Unit System Detection
 
 Auto-detected from browser locale. Countries using conventional: US, LR (Liberia), MM (Myanmar). Special en-US cross-check: if timezone is non-US (e.g. Pacific/Auckland), defaults to SI.
+

@@ -19,11 +19,12 @@ export function calculateIBW(heightCm: number, sex: 'male' | 'female'): number {
 }
 
 /**
- * Calculate daily protein target
- * 1.2g per kg of ideal body weight
+ * Calculate daily protein target for adults without CKD stage 3+.
+ * Uses 1.6 g/kg ideal body weight as a practical upper-end target for
+ * muscle maintenance / hypertrophy-oriented advice in otherwise healthy adults.
  */
 export function calculateProteinTarget(ibwKg: number): number {
-  return Math.round(ibwKg * 1.2);
+  return Math.round(ibwKg * 1.6);
 }
 
 /**
@@ -134,10 +135,10 @@ export function getLipidStatus(value: number, thresholds: { borderline: number; 
 
 /**
  * Get protein intake rate per kg IBW based on kidney function.
- * CKD Stage 3b+ (eGFR < 45): 1.0g/kg; otherwise 1.2g/kg.
+ * CKD stage 3+ (eGFR < 60): 0.8g/kg; otherwise 1.6g/kg.
  */
 export function getProteinRate(eGFR?: number): number {
-  return eGFR !== undefined && eGFR < EGFR_THRESHOLDS.mildlyDecreased ? 1.0 : 1.2;
+  return eGFR !== undefined && eGFR < EGFR_THRESHOLDS.lowNormal ? 0.8 : 1.6;
 }
 
 /**
@@ -199,9 +200,9 @@ export function calculateHealthResults(inputs: HealthInputs, unitSystem?: UnitSy
     results.eGFR = Math.round(calculateEGFR(inputs.creatinine, results.age, inputs.sex));
   }
 
-  // Adjust protein target for CKD Stage 3b+ (eGFR < 45): 1.0g/kg instead of 1.2g/kg
-  if (results.eGFR !== undefined && results.eGFR < EGFR_THRESHOLDS.mildlyDecreased) {
-    results.proteinTarget = Math.round(ibw * 1.0);
+  // Adjust protein target for CKD stage 3+ (eGFR < 60): 0.8g/kg instead of 1.6g/kg
+  if (results.eGFR !== undefined && results.eGFR < EGFR_THRESHOLDS.lowNormal) {
+    results.proteinTarget = Math.round(ibw * 0.8);
   }
 
   // Generate personalized suggestions based on all inputs and results

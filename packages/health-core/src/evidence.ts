@@ -107,8 +107,8 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   // ── Nutrition ──────────────────────────────────────────────
 
   'protein-target': {
-    reason: 'Higher protein intake supports muscle maintenance, metabolic health, and healthy aging. Research shows that 1.2g per kg of ideal body weight optimises muscle protein synthesis. If kidney function is reduced (eGFR below 45), a lower target of 1.0g/kg is recommended to reduce kidney workload.',
-    guidelines: ['ISSN 2017'],
+    reason: 'Higher protein intake supports muscle maintenance, metabolic health, and healthy aging. In healthy adults pursuing strength, lean mass, or healthy aging, intakes around 1.6g per kg per day are well supported by sports-nutrition evidence. If kidney function is reduced (CKD stage 3 or higher), a lower target around 0.8g/kg is more appropriate.',
+    guidelines: ['ISSN 2017', 'KDIGO 2024'],
     references: REFS_PROTEIN,
   },
 
@@ -171,7 +171,7 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   // ── Weight & Diabetes Medications ──────────────────────────
 
   'weight-med-glp1': {
-    reason: 'GLP-1 receptor agonists like tirzepatide and semaglutide have been shown in large randomised trials to produce significant, sustained weight loss alongside improvements in blood sugar, blood pressure, and triglycerides. Tirzepatide is preferred due to its dual GIP/GLP-1 mechanism, which may provide greater weight loss. These medications work best alongside diet, exercise, and sleep optimisation.',
+    reason: 'GLP-1 and dual GIP/GLP-1 agonists such as semaglutide and tirzepatide have been shown in large randomised trials to produce substantial weight loss alongside improvements in blood sugar, blood pressure, and triglycerides. They are best used as part of comprehensive obesity care and only after checking eligibility, contraindications, tolerability, and pregnancy plans.',
     guidelines: [],
     references: REFS_GLP1,
   },
@@ -183,7 +183,7 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   },
 
   'weight-med-glp1-switch': {
-    reason: 'Tirzepatide (Mounjaro/Zepbound) works on both GIP and GLP-1 receptors, which may provide greater weight loss than GLP-1-only medications. In clinical trials, tirzepatide achieved up to 22% body weight loss.',
+    reason: 'If response to current incretin therapy is inadequate, switching to a more potent option may be reasonable. Tirzepatide produced greater mean weight loss than semaglutide in head-to-head trials, but treatment choice should still be individualized.',
     guidelines: [],
     references: REFS_GLP1,
   },
@@ -247,19 +247,19 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   // ── Blood Work: Atherogenic Lipids ─────────────────────────
 
   'apob-very-high': {
-    reason: 'ApoB directly measures the number of atherogenic (artery-clogging) particles in your blood and is considered the most accurate predictor of cardiovascular risk by the European Atherosclerosis Society. Each LDL, VLDL, and Lp(a) particle carries exactly one ApoB molecule, making it a superior marker to LDL cholesterol, which only estimates particle concentration. A very high ApoB indicates significantly elevated cardiovascular risk, and statin therapy is typically recommended.\n\nDr Stanfield uses on-treatment targets of ≤50 mg/dL (≤0.5 g/L) based on the ESC/EAS guidelines and the PESA study, which demonstrated that subclinical atherosclerosis progression is driven by cumulative LDL/ApoB exposure over time — even in young, apparently healthy adults.',
+    reason: 'ApoB directly measures the number of atherogenic (artery-clogging) particles in your blood and is considered one of the strongest predictors of cardiovascular risk by the European Atherosclerosis Society. Each LDL, VLDL, and Lp(a) particle carries exactly one ApoB molecule, making it a more direct marker than LDL cholesterol. A very high ApoB indicates significantly elevated cardiovascular risk, and statin therapy is typically recommended.\n\nThis tool uses a low preventive target of ???50 mg/dL (???0.5 g/L) to reflect cumulative lifetime exposure to atherogenic particles, which is more aggressive than many standard primary-prevention thresholds.',
     guidelines: [...GUIDELINES_LIPIDS, 'EAS Consensus'],
     references: [...REFS_LIPID_EVIDENCE, ...REFS_PESA, ...REFS_LDL_SAFETY],
   },
 
   'apob-high': {
-    reason: 'ApoB directly measures the number of atherogenic (artery-clogging) particles in your blood. It is considered a more accurate predictor of cardiovascular risk than LDL cholesterol by the European Atherosclerosis Society. Your level is elevated and lifestyle modifications and/or medication should be discussed with your doctor.\n\nDr Stanfield uses on-treatment targets of ≤50 mg/dL (≤0.5 g/L) based on ESC/EAS guidelines and the PESA study, which showed that early ApoB/LDL exposure drives atherosclerosis even in young, healthy adults.',
+    reason: 'ApoB directly measures the number of atherogenic (artery-clogging) particles in your blood. It is considered a more accurate predictor of cardiovascular risk than LDL cholesterol by the European Atherosclerosis Society. Your level is elevated and lifestyle modifications and/or medication should be discussed with your doctor.\n\nThis tool uses a low preventive target of ???50 mg/dL (???0.5 g/L) to reflect cumulative lifetime exposure to atherogenic particles, which is more aggressive than many standard primary-prevention thresholds.',
     guidelines: [...GUIDELINES_LIPIDS, 'EAS Consensus'],
     references: [...REFS_LIPID_EVIDENCE, ...REFS_PESA, ...REFS_LDL_SAFETY],
   },
 
   'apob-borderline': {
-    reason: 'ApoB measures the total number of atherogenic particles in your blood. Standard guidelines would classify this level as normal, but Dr Stanfield uses more aggressive targets based on the PESA study, which showed that cumulative LDL/ApoB exposure drives atherosclerosis even in young, apparently healthy adults. This is why your result shows as borderline rather than normal.',
+    reason: 'ApoB measures the total number of atherogenic particles in your blood. Standard guidelines may classify this level as acceptable, but this tool uses a more aggressive preventive target based on the idea that cumulative LDL/ApoB exposure drives atherosclerosis over time. This is why your result shows as borderline rather than optimal.',
     guidelines: [...GUIDELINES_LIPIDS, 'EAS Consensus'],
     references: [...REFS_LIPID_EVIDENCE, ...REFS_PESA],
   },
@@ -277,7 +277,7 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   },
 
   'ldl-borderline': {
-    reason: 'Standard guidelines would classify this LDL level as normal, but Dr Stanfield uses more aggressive targets based on the PESA study, which showed that cumulative LDL exposure drives atherosclerosis even in young, apparently healthy adults. LDL is a causal factor in atherosclerosis — the lower, the better over a lifetime of exposure.\n\nNote: ApoB is a more accurate marker than LDL cholesterol. If available, ask your doctor about testing ApoB.',
+    reason: 'Standard guidelines may classify this LDL level as acceptable, but this tool uses a more aggressive preventive target because cumulative LDL exposure drives atherosclerosis over time. LDL is a causal factor in atherosclerosis.\n\nNote: ApoB is a more accurate marker than LDL cholesterol. If available, ask your doctor about testing ApoB.',
     guidelines: [...GUIDELINES_LIPIDS],
     references: [...REFS_LIPID_EVIDENCE, ...REFS_PESA],
   },
@@ -295,7 +295,7 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   },
 
   'non-hdl-borderline': {
-    reason: 'Non-HDL cholesterol captures all atherogenic particles (LDL + VLDL + remnants). Standard guidelines would classify this level as normal, but Dr Stanfield uses more aggressive targets based on the PESA study, which showed that cumulative exposure to atherogenic lipids drives atherosclerosis even in young, apparently healthy adults.\n\nNote: ApoB is the most accurate single marker. If available, ask your doctor about testing ApoB.',
+    reason: 'Non-HDL cholesterol captures all atherogenic particles (LDL + VLDL + remnants). Standard guidelines may classify this level as acceptable, but this tool uses a more aggressive preventive target because cumulative exposure to atherogenic lipids drives atherosclerosis over time.\n\nNote: ApoB is the most accurate single marker. If available, ask your doctor about testing ApoB.',
     guidelines: [...GUIDELINES_LIPIDS],
     references: [...REFS_LIPID_EVIDENCE, ...REFS_PESA],
   },
@@ -355,13 +355,13 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   },
 
   'bp-stage2': {
-    reason: 'Stage 2 hypertension (≥140/90 mmHg) significantly increases the risk of heart attack, stroke, kidney disease, and heart failure. At this level, medication is typically recommended alongside lifestyle measures.\n\nDr Stanfield targets <120/80 mmHg for adults under 65, based on the SPRINT trial (9,300 participants), which showed that intensive blood pressure lowering to <120 mmHg significantly reduced cardiovascular events and mortality compared to the standard <140 mmHg target. The ESPRIT trial (11,255 participants) confirmed these benefits extend to patients with diabetes and prior stroke.',
+    reason: 'Stage 2 hypertension (???140/90 mmHg) significantly increases the risk of heart attack, stroke, kidney disease, and heart failure. At this level, medication is typically recommended alongside lifestyle measures.\n\nMost modern guidelines aim for below 130/80 mmHg in treated adults, while lower systolic targets can be considered only when they are well tolerated and measured carefully.',
     guidelines: [...GUIDELINES_BP, 'SPRINT 2015', 'ESPRIT 2024'],
     references: [...REFS_BP_LIFESTYLE, ...REFS_SODIUM, ...REFS_BP_TRIALS],
   },
 
   'bp-stage1': {
-    reason: 'Stage 1 hypertension (130–139/80–89 mmHg) is the point at which blood pressure starts to cause meaningful cardiovascular damage over time. Lifestyle measures are the first-line treatment: reduce sodium, increase potassium-rich foods, exercise regularly, prioritise sleep, and manage weight.\n\nDr Stanfield targets <120/80 mmHg for adults under 65. The SPRINT trial showed that targeting <120 mmHg (vs <140 mmHg) reduced cardiovascular events by 25% and all-cause mortality by 27%. The ESPRIT trial extended these findings to a broader population including those with diabetes.',
+    reason: 'Stage 1 hypertension (130???139/80???89 mmHg) is the point at which blood pressure starts to cause meaningful cardiovascular damage over time. Lifestyle measures are the first-line treatment: reduce sodium, increase potassium-rich foods, exercise regularly, prioritise sleep, and manage weight.\n\nMost modern guidelines aim for below 130/80 mmHg in treated adults, while lower systolic targets can be considered only when they are well tolerated and measured carefully.',
     guidelines: [...GUIDELINES_BP, 'SPRINT 2015', 'ESPRIT 2024'],
     references: [...REFS_BP_LIFESTYLE, ...REFS_SODIUM, ...REFS_BP_TRIALS],
   },
@@ -369,7 +369,7 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   // ── Cholesterol Medication Cascade ─────────────────────────
 
   'med-statin': {
-    reason: 'Statins are the cornerstone of cholesterol-lowering therapy. Both the AHA/ACC and ESC/EAS guidelines recommend statins as first-line treatment when lipid levels exceed targets. Statins reduce LDL/ApoB by inhibiting cholesterol synthesis in the liver, and large clinical trials consistently show they reduce cardiovascular events and mortality.\n\nDr Stanfield uses more aggressive on-treatment lipid targets (ApoB ≤50 mg/dL, LDL ≤54 mg/dL) based on the PESA study, which showed that even young, healthy adults develop subclinical atherosclerosis when exposed to elevated lipids over time. Multiple studies confirm that very low LDL levels are safe.',
+    reason: 'Statins are the cornerstone of cholesterol-lowering therapy. Both the AHA/ACC and ESC/EAS guidelines recommend statins as first-line treatment when lipid levels exceed targets. Statins reduce LDL/ApoB by inhibiting cholesterol synthesis in the liver, and large clinical trials consistently show they reduce cardiovascular events and mortality.\n\nThis tool uses a low preventive target for atherogenic particles to reflect cumulative lifetime exposure, which is more aggressive than many standard primary-prevention thresholds. Multiple studies confirm that very low LDL levels are generally safe.',
     guidelines: [...GUIDELINES_LIPIDS],
     references: [...REFS_LIPID_GUIDELINES, ...REFS_PESA, ...REFS_LDL_SAFETY],
   },
@@ -408,11 +408,11 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   // ── Cancer Screening ───────────────────────────────────────
 
   'screening-colorectal': {
-    reason: 'The American Cancer Society recommends colorectal screening starting at age 45 for average-risk adults. Dr Stanfield recommends starting at age 35 due to rising rates of early-onset colorectal cancer, particularly in adults under 50 — a global trend documented across multiple countries over recent decades. Screening options include annual stool-based testing (FIT) or colonoscopy every 10 years.',
-    guidelines: ['ACS', 'Dr Stanfield'],
+    reason: 'Average-risk colorectal screening starts at age 45 in current major guidelines. Screening options include annual stool-based testing (FIT) or colonoscopy every 10 years, and the right choice depends on access, preference, and individual risk factors.',
+    guidelines: ['USPSTF 2021', 'ACS'],
     references: [
+      { label: 'USPSTF ??? Colorectal Cancer Screening Recommendation', url: 'https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening' },
       ...REFS_SCREENING_ACS,
-      { label: 'Siegel 2019 – Rising early-onset colorectal cancer globally (Gut)', url: 'https://doi.org/10.1136/gutjnl-2019-319511' },
     ],
   },
 
@@ -465,40 +465,13 @@ export const SUGGESTION_EVIDENCE: Record<string, SuggestionEvidence> = {
   },
 
   'screening-dexa': {
-    reason: 'A DEXA scan measures bone mineral density and can detect osteoporosis before a fracture occurs. Early detection allows treatment with medications that reduce fracture risk. The USPSTF recommends screening for women aged 65+ and postmenopausal women under 65 with risk factors.',
+    reason: 'A DEXA scan measures bone mineral density and can detect osteoporosis before a fracture occurs. Early detection allows treatment with medications that reduce fracture risk. For average-risk adults, the USPSTF supports routine screening for women aged 65+ and younger postmenopausal women only when fracture risk is increased.',
     guidelines: ['USPSTF'],
     references: [
       { label: 'USPSTF – Osteoporosis Screening Recommendation', url: 'https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/osteoporosis-screening' },
     ],
   },
 
-  // ── Supplements ────────────────────────────────────────────
-
-  'supplement-microvitamin': {
-    reason: 'A comprehensive daily supplement can help fill nutritional gaps. A COSMOS trial sub-study found that daily multivitamin use improved cognitive function in older adults, suggesting broad micronutrient support may benefit brain health alongside physical health.',
-    guidelines: [],
-    references: [
-      { label: 'Baker 2023 – Multivitamin & cognitive function: COSMOS trial (Alzheimers Dement)', url: 'https://doi.org/10.1002/alz.12767' },
-    ],
-  },
-
-  'supplement-omega3': {
-    reason: 'An updated meta-analysis of interventional trials found that omega-3 supplementation reduces cardiovascular events and cardiac death, with benefits increasing at higher doses. The effect appears strongest for EPA-rich formulations.\n\nOmega-3 also plays an important role in cognitive protection. Randomised trials found that B vitamin supplementation slowed brain atrophy by 40% — but only in participants with adequate omega-3 levels. When omega-3 was low, B vitamins had no effect. This suggests that combining omega-3 with a B-complex supplement may provide synergistic neuroprotective benefits.',
-    guidelines: [],
-    references: [
-      { label: 'Bernasconi 2021 – Omega-3 dose & cardiovascular outcomes (Mayo Clin Proc)', url: 'https://doi.org/10.1016/j.mayocp.2020.08.034' },
-      { label: 'Jernerén 2015 – B vitamins + omega-3 slow brain atrophy (Am J Clin Nutr)', url: 'https://doi.org/10.3945/ajcn.114.103283' },
-      { label: 'Oulhaj 2016 – Omega-3 enhances B vitamin cognitive protection (J Alzheimers Dis)', url: 'https://doi.org/10.3233/JAD-150777' },
-    ],
-  },
-
-  'supplement-sleep': {
-    reason: 'An umbrella review of meta-analyses confirms that melatonin supplementation effectively reduces sleep onset latency and improves sleep quality, with a good safety profile. This supports its use as part of a comprehensive sleep hygiene strategy.',
-    guidelines: [],
-    references: [
-      { label: 'Low 2020 – Melatonin efficacy for insomnia (J Psychiatr Res)', url: 'https://doi.org/10.1016/j.jpsychires.2019.10.022' },
-    ],
-  },
 
   // ── Skin Health ────────────────────────────────────────────
 

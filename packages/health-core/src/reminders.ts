@@ -129,7 +129,7 @@ function computeScreeningReminders(
   const { age, sex } = profile;
 
   // Colorectal (age 35-75)
-  if (age >= 35 && age <= 75) {
+  if (age >= 45 && age <= 75) {
     const method = screenings.colorectalMethod;
     if (method && method !== 'not_yet_started') {
       const overdue = isScreeningOverdue(screenings.colorectalLastDate, method, now)
@@ -213,7 +213,7 @@ function computeScreeningReminders(
   }
 
   // DEXA bone density (female ≥50, male ≥70)
-  if ((sex === 'female' && age >= 50) || (sex === 'male' && age >= 70)) {
+  if (sex === 'female' && age >= 65) {
     if (screenings.dexaScreening && screenings.dexaScreening !== 'not_yet_started' && screenings.dexaLastDate) {
       // Result-based interval: osteopenia → 2yr, normal → 5yr, osteoporosis → post-followup pattern
       if (screenings.dexaResult === 'osteoporosis') {

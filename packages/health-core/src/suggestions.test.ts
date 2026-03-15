@@ -27,7 +27,7 @@ function createTestData(
   const results: HealthResults = {
     heightCm: 175,
     idealBodyWeight: 73.8,
-    proteinTarget: 89,
+    proteinTarget: 118,
     suggestions: [],
     ...resultOverrides,
   };
@@ -50,7 +50,7 @@ describe('generateSuggestions', () => {
       expect(proteinSuggestion).toBeDefined();
       expect(proteinSuggestion?.priority).toBe('info');
       expect(proteinSuggestion?.category).toBe('nutrition');
-      expect(proteinSuggestion?.title).toContain('89g');
+      expect(proteinSuggestion?.title).toContain('118g');
     });
   });
 
@@ -379,20 +379,20 @@ describe('generateSuggestions', () => {
       expect(bpSuggestions.length).toBe(0);
     });
 
-    it('shows target <120/80 for stage 1 when age < 65', () => {
+    it('shows target <130/80 guidance for stage 1 when age < 65', () => {
       const { inputs, results } = createTestData({ systolicBp: 135, diastolicBp: 85 }, { age: 55 });
       const suggestions = generateSuggestions(inputs, results);
 
       const bpSuggestion = suggestions.find(s => s.id === 'bp-stage1');
-      expect(bpSuggestion?.description).toContain('Target is <120/80');
+      expect(bpSuggestion?.description).toContain('below 130/80 mmHg');
     });
 
-    it('shows target <130/80 for stage 1 when age >= 65', () => {
+    it('shows target <130/80 guidance for stage 1 when age >= 65', () => {
       const { inputs, results } = createTestData({ systolicBp: 135, diastolicBp: 85 }, { age: 70 });
       const suggestions = generateSuggestions(inputs, results);
 
       const bpSuggestion = suggestions.find(s => s.id === 'bp-stage1');
-      expect(bpSuggestion?.description).toContain('Target is <130/80');
+      expect(bpSuggestion?.description).toContain('below 130/80 mmHg');
     });
 
     it('triggers on systolic alone when diastolic is normal', () => {
@@ -433,7 +433,7 @@ describe('generateSuggestions', () => {
 
       const bpSuggestion = suggestions.find(s => s.id === 'bp-stage1');
       expect(bpSuggestion?.description).toContain('Weight loss is one of the most effective ways to lower blood pressure');
-      expect(bpSuggestion?.description).toContain('GLP-1 medications');
+      expect(bpSuggestion?.description).toContain('anti-obesity medications');
     });
 
     it('stage 1 mentions weight loss when BMI 25-29.9 and WHtR >= 0.5', () => {
@@ -784,8 +784,8 @@ describe('generateSuggestions', () => {
   });
 
   describe('GLP-1 weight management suggestion', () => {
-    it('suggests GLP-1 when BMI > 28', () => {
-      const { inputs, results } = createTestData({}, { bmi: 29 });
+    it('suggests GLP-1 when BMI >= 30', () => {
+      const { inputs, results } = createTestData({}, { bmi: 30 });
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-glp1')).toBeDefined();
       expect(suggestions.find(s => s.id === 'weight-glp1')?.category).toBe('medication');
@@ -798,7 +798,7 @@ describe('generateSuggestions', () => {
     });
 
     it('suggests GLP-1 when BMI 25-28 and waist-to-height >= 0.5', () => {
-      const { inputs, results } = createTestData({}, { bmi: 26, waistToHeightRatio: 0.52 });
+      const { inputs, results } = createTestData({}, { bmi: 27, waistToHeightRatio: 0.52 });
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-glp1')).toBeDefined();
     });
@@ -837,7 +837,7 @@ describe('generateSuggestions', () => {
     it('mentions waist in GLP-1 description when triggered by waist (not trigs)', () => {
       const { inputs, results } = createTestData(
         { triglycerides: trig(120) },  // normal
-        { bmi: 26, waistToHeightRatio: 0.52 }  // elevated waist
+        { bmi: 27, waistToHeightRatio: 0.52 }  // elevated waist
       );
       const suggestions = generateSuggestions(inputs, results);
       const glp1 = suggestions.find(s => s.id === 'weight-glp1');
@@ -846,23 +846,21 @@ describe('generateSuggestions', () => {
     });
 
     // WHtR reclassification: BMI 25-29.9 with healthy WHtR (<0.5) = Normal → no GLP-1
-    it('does NOT suggest GLP-1 when BMI > 28 but healthy WHtR (reclassified Normal)', () => {
+    it('does NOT suggest GLP-1 when BMI 25-29.9 but healthy WHtR (reclassified Normal)', () => {
       const { inputs, results } = createTestData({}, { bmi: 29, waistToHeightRatio: 0.4 });
       expect(results.bmiCategory).toBe('Normal');
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-glp1')).toBeUndefined();
     });
 
-    it('still suggests GLP-1 when BMI > 28 and no WHtR data (no reclassification)', () => {
-      const { inputs, results } = createTestData({}, { bmi: 29 });
-      expect(results.bmiCategory).toBe('Overweight');
+    it('still suggests GLP-1 when BMI >= 30 and no WHtR data', () => {
+      const { inputs, results } = createTestData({}, { bmi: 30 });
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-glp1')).toBeDefined();
     });
 
-    it('still suggests GLP-1 when BMI > 28 and elevated WHtR', () => {
-      const { inputs, results } = createTestData({}, { bmi: 29, waistToHeightRatio: 0.55 });
-      expect(results.bmiCategory).toBe('Overweight');
+    it('still suggests GLP-1 when BMI >= 30 and elevated WHtR', () => {
+      const { inputs, results } = createTestData({}, { bmi: 30, waistToHeightRatio: 0.55 });
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-glp1')).toBeDefined();
     });
@@ -1174,15 +1172,15 @@ describe('generateSuggestions', () => {
 
   describe('Cancer screening suggestions', () => {
     // Colorectal
-    it('suggests colorectal screening for age 35+ with no method selected', () => {
-      const { inputs, results } = createTestData({ birthYear: 1985, birthMonth: 1 }, { age: 41 });
+    it('suggests colorectal screening for age 45+ with no method selected', () => {
+      const { inputs, results } = createTestData({ birthYear: 1979, birthMonth: 1 }, { age: 46 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-colorectal')).toBeDefined();
     });
 
-    it('does not suggest colorectal screening for age 34', () => {
-      const { inputs, results } = createTestData({ birthYear: 1992, birthMonth: 1 }, { age: 34 });
+    it('does not suggest colorectal screening for age 44', () => {
+      const { inputs, results } = createTestData({ birthYear: 1981, birthMonth: 1 }, { age: 44 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-colorectal')).toBeUndefined();
@@ -1280,7 +1278,7 @@ describe('generateSuggestions', () => {
     });
 
     it('does not suggest prostate for female', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-prostate')).toBeUndefined();
@@ -1595,7 +1593,7 @@ describe('generateSuggestions', () => {
   });
 
   describe('Weight & diabetes medication cascade', () => {
-    // Trigger: BMI > 28 (unconditional) OR BMI 25-28 with (HbA1c prediabetic OR trigs >= 150 OR SBP >= 130 OR WHR >= 0.5)
+    // Trigger: BMI >= 30, or BMI >= 27 with metabolic risk criteria
     it('shows GLP-1 suggestion when BMI > 25 AND HbA1c prediabetic', () => {
       const { inputs, results } = createTestData(
         { hba1c: hba1c(5.8) },
@@ -1609,7 +1607,7 @@ describe('generateSuggestions', () => {
     it('shows GLP-1 suggestion when BMI > 25 AND elevated triglycerides', () => {
       const { inputs, results } = createTestData(
         { triglycerides: trig(160) },
-        { bmi: 26 },
+        { bmi: 27 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1619,7 +1617,7 @@ describe('generateSuggestions', () => {
     it('shows GLP-1 suggestion when BMI > 25 AND SBP >= 130', () => {
       const { inputs, results } = createTestData(
         { systolicBp: 135 },
-        { bmi: 26 },
+        { bmi: 27 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1629,7 +1627,7 @@ describe('generateSuggestions', () => {
     it('shows GLP-1 suggestion when BMI > 25 AND waist-to-height >= 0.5', () => {
       const { inputs, results } = createTestData(
         {},
-        { bmi: 26, waistToHeightRatio: 0.55 },
+        { bmi: 27, waistToHeightRatio: 0.55 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1646,10 +1644,10 @@ describe('generateSuggestions', () => {
       expect(suggestions.find(s => s.id === 'weight-med-glp1')).toBeUndefined();
     });
 
-    it('shows cascade when BMI > 28 with NO secondary criteria', () => {
+    it('shows cascade when BMI >= 30 with no secondary criteria', () => {
       const { inputs, results } = createTestData(
         {},
-        { bmi: 29 },
+        { bmi: 30 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1669,7 +1667,7 @@ describe('generateSuggestions', () => {
     it('does NOT show cascade when medications param not provided', () => {
       const { inputs, results } = createTestData(
         { hba1c: hba1c(6.0) },
-        { bmi: 28 },
+        { bmi: 27 },
       );
       const suggestions = generateSuggestions(inputs, results);
       expect(suggestions.find(s => s.id === 'weight-med-glp1')).toBeUndefined();
@@ -1701,7 +1699,7 @@ describe('generateSuggestions', () => {
     it('shows cascade when BMI 25-28 with elevated WHtR and elevated BP', () => {
       const { inputs, results } = createTestData(
         { systolicBp: 140 },
-        { bmi: 26, waistToHeightRatio: 0.55 },
+        { bmi: 27, waistToHeightRatio: 0.55 },
       );
       expect(results.bmiCategory).toBe('Overweight');
       const meds: MedicationInputs = {};
@@ -1709,12 +1707,12 @@ describe('generateSuggestions', () => {
       expect(suggestions.find(s => s.id === 'weight-med-glp1')).toBeDefined();
     });
 
-    it('shows cascade when BMI > 28 with no WHtR data (no reclassification)', () => {
+    it('shows cascade when BMI >= 30 with no WHtR data', () => {
       const { inputs, results } = createTestData(
         {},
-        { bmi: 29 },
+        { bmi: 30 },
       );
-      expect(results.bmiCategory).toBe('Overweight');
+      expect(results.bmiCategory).toBe('Obese (Class I)');
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
       expect(suggestions.find(s => s.id === 'weight-med-glp1')).toBeDefined();
@@ -1834,7 +1832,7 @@ describe('generateSuggestions', () => {
     it('mentions HbA1c in description when HbA1c is a trigger', () => {
       const { inputs, results } = createTestData(
         { hba1c: hba1c(6.0) },
-        { bmi: 26 },
+        { bmi: 27 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1845,7 +1843,7 @@ describe('generateSuggestions', () => {
     it('mentions triglycerides in description when trigs are a trigger', () => {
       const { inputs, results } = createTestData(
         { triglycerides: trig(200) },
-        { bmi: 26 },
+        { bmi: 27 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1856,7 +1854,7 @@ describe('generateSuggestions', () => {
     it('mentions blood pressure in description when BP is a trigger', () => {
       const { inputs, results } = createTestData(
         { systolicBp: 140 },
-        { bmi: 26 },
+        { bmi: 27 },
       );
       const meds: MedicationInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', meds);
@@ -1866,9 +1864,9 @@ describe('generateSuggestions', () => {
   });
 
   describe('GLP-1 escalation in weight & diabetes cascade', () => {
-    // All tests use BMI > 28 with HbA1c to trigger cascade
-    const cascadeOverrides = { hba1c: hba1c(5.8) };
-    const cascadeBmi = { bmi: 29 };
+    // All tests use BMI >= 30 with HbA1c to trigger cascade
+      const cascadeOverrides = { hba1c: hba1c(5.8) };
+      const cascadeBmi = { bmi: 30 };
 
     it('suggests GLP-1 dose increase when not on max dose', () => {
       const { inputs, results } = createTestData(cascadeOverrides, cascadeBmi);
@@ -2036,56 +2034,33 @@ describe('generateSuggestions', () => {
   });
 
   describe('Supplement suggestions', () => {
-    it('always includes three supplement suggestions', () => {
+    it('does not include default supplement suggestions', () => {
       const { inputs, results } = createTestData();
       const suggestions = generateSuggestions(inputs, results);
 
-      const supplements = suggestions.filter(s => s.category === 'supplements');
-      expect(supplements).toHaveLength(3);
-      expect(supplements.map(s => s.id)).toEqual([
-        'supplement-microvitamin',
-        'supplement-omega3',
-        'supplement-sleep',
-      ]);
+      expect(suggestions.filter(s => s.category === 'supplements')).toHaveLength(0);
     });
-
-    it('all supplement suggestions have links', () => {
-      const { inputs, results } = createTestData();
-      const suggestions = generateSuggestions(inputs, results);
-
-      const supplements = suggestions.filter(s => s.category === 'supplements');
-      expect(supplements.every(s => s.link)).toBe(true);
-    });
-
-    it('supplement suggestions have info priority', () => {
-      const { inputs, results } = createTestData();
-      const suggestions = generateSuggestions(inputs, results);
-
-      const supplements = suggestions.filter(s => s.category === 'supplements');
-      expect(supplements.every(s => s.priority === 'info')).toBe(true);
-    });
-
   });
 
   describe('Protein target CKD adjustment', () => {
-    it('shows standard 1.2g/kg protein when eGFR is normal', () => {
-      const { inputs, results } = createTestData({}, { eGFR: 90, proteinTarget: 89 });
+    it('shows standard 1.6g/kg protein when eGFR is normal', () => {
+      const { inputs, results } = createTestData({}, { eGFR: 90, proteinTarget: 118 });
       const suggestions = generateSuggestions(inputs, results);
       const protein = suggestions.find(s => s.id === 'protein-target');
       expect(protein?.description).not.toContain('kidney function');
     });
 
-    it('shows CKD-adjusted text when eGFR < 45', () => {
-      // CKD Stage 3b: eGFR < 45 → 1.0g/kg
-      const { inputs, results } = createTestData({}, { eGFR: 40, proteinTarget: 74 });
+    it('shows CKD-adjusted text when eGFR < 60', () => {
+      // CKD stage 3+: eGFR < 60 → 0.8g/kg
+      const { inputs, results } = createTestData({}, { eGFR: 40, proteinTarget: 59 });
       const suggestions = generateSuggestions(inputs, results);
       const protein = suggestions.find(s => s.id === 'protein-target');
       expect(protein?.description).toContain('kidney function');
-      expect(protein?.description).toContain('1.0g per kg');
+      expect(protein?.description).toContain('0.8g per kg');
     });
 
-    it('shows standard text when eGFR is exactly 45', () => {
-      const { inputs, results } = createTestData({}, { eGFR: 45, proteinTarget: 89 });
+    it('shows standard text when eGFR is exactly 60', () => {
+      const { inputs, results } = createTestData({}, { eGFR: 60, proteinTarget: 118 });
       const suggestions = generateSuggestions(inputs, results);
       const protein = suggestions.find(s => s.id === 'protein-target');
       expect(protein?.description).not.toContain('kidney function');
@@ -2138,22 +2113,22 @@ describe('generateSuggestions', () => {
   });
 
   describe('DEXA bone density screening suggestions', () => {
-    it('suggests DEXA for female age 50+', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1975, birthMonth: 1 }, { age: 51 });
+    it('suggests DEXA for female age 65+', () => {
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1960, birthMonth: 1 }, { age: 66 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-dexa')).toBeDefined();
     });
 
-    it('suggests DEXA for male age 70+', () => {
+    it('does not suggest DEXA for male age 70+', () => {
       const { inputs, results } = createTestData({ sex: 'male', birthYear: 1955, birthMonth: 1 }, { age: 71 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
-      expect(suggestions.find(s => s.id === 'screening-dexa')).toBeDefined();
+      expect(suggestions.find(s => s.id === 'screening-dexa')).toBeUndefined();
     });
 
-    it('does not suggest DEXA for female age 49', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1977, birthMonth: 1 }, { age: 49 });
+    it('does not suggest DEXA for female age 64', () => {
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1961, birthMonth: 1 }, { age: 64 });
       const scr: ScreeningInputs = {};
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-dexa')).toBeUndefined();
@@ -2167,21 +2142,21 @@ describe('generateSuggestions', () => {
     });
 
     it('shows overdue when DEXA normal result is past 5-year interval', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const scr: ScreeningInputs = { dexaScreening: 'dexa_scan', dexaLastDate: '2019-06', dexaResult: 'normal' };
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-dexa-overdue')).toBeDefined();
     });
 
     it('shows overdue when DEXA osteopenia result is past 2-year interval', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const scr: ScreeningInputs = { dexaScreening: 'dexa_scan', dexaLastDate: '2023-01', dexaResult: 'osteopenia' };
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-dexa-overdue')).toBeDefined();
     });
 
     it('shows up-to-date for recent normal DEXA', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const now = new Date();
       const lastMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const scr: ScreeningInputs = { dexaScreening: 'dexa_scan', dexaLastDate: lastMonth, dexaResult: 'normal' };
@@ -2190,7 +2165,7 @@ describe('generateSuggestions', () => {
     });
 
     it('shows follow-up for osteoporosis without organized follow-up', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const scr: ScreeningInputs = { dexaScreening: 'dexa_scan', dexaLastDate: '2024-06', dexaResult: 'osteoporosis' };
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       const followup = suggestions.find(s => s.id === 'screening-dexa-followup');
@@ -2199,7 +2174,7 @@ describe('generateSuggestions', () => {
     });
 
     it('does not suggest when not_yet_started is selected', () => {
-      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1970, birthMonth: 1 }, { age: 56 });
+      const { inputs, results } = createTestData({ sex: 'female', birthYear: 1958, birthMonth: 1 }, { age: 68 });
       const scr: ScreeningInputs = { dexaScreening: 'not_yet_started' };
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
       expect(suggestions.find(s => s.id === 'screening-dexa')).toBeDefined(); // should suggest starting
@@ -2218,7 +2193,7 @@ describe('generateSuggestions', () => {
         // no dexaFollowupDate — screeningFollowup returns null, should fall through to upcoming
       };
       const suggestions = generateSuggestions(inputs, results, 'si', undefined, scr);
-      expect(suggestions.find(s => s.id === 'screening-dexa-upcoming')).toBeDefined();
+      expect(suggestions.find(s => s.id === 'screening-dexa-upcoming')).toBeUndefined();
     });
   });
 
@@ -2551,7 +2526,7 @@ describe('Evidence attachment', () => {
     const colorectal = suggestions.find(s => s.id.startsWith('screening-colorectal'));
     expect(colorectal).toBeDefined();
     expect(colorectal!.reason).toBeDefined();
-    expect(colorectal!.reason).toContain('Dr Stanfield');
+    expect(colorectal!.reason).toContain('age 45');
     expect(colorectal!.references!.length).toBeGreaterThan(0);
   });
 
@@ -2573,7 +2548,7 @@ describe('Evidence attachment', () => {
     const suggestions = generateSuggestions(inputs, results, 'si');
     const apobBorderline = suggestions.find(s => s.id === 'apob-borderline');
     expect(apobBorderline).toBeDefined();
-    expect(apobBorderline!.reason).toContain('PESA');
+    expect(apobBorderline!.reason).toContain('more aggressive preventive target');
     expect(apobBorderline!.references!.some(r => r.label.includes('PESA'))).toBe(true);
   });
 });

@@ -51,15 +51,15 @@ describe('calculateIBW (Ideal Body Weight — Peterson 2016)', () => {
 });
 
 describe('calculateProteinTarget', () => {
-  it('calculates 1.2g per kg of IBW', () => {
-    expect(calculateProteinTarget(70)).toBe(84);
-    expect(calculateProteinTarget(60)).toBe(72);
-    expect(calculateProteinTarget(80)).toBe(96);
+  it('calculates 1.6g per kg of IBW', () => {
+    expect(calculateProteinTarget(70)).toBe(112);
+    expect(calculateProteinTarget(60)).toBe(96);
+    expect(calculateProteinTarget(80)).toBe(128);
   });
 
   it('rounds to nearest whole number', () => {
-    // 65.5 * 1.2 = 78.6 -> 79
-    expect(calculateProteinTarget(65.5)).toBe(79);
+    // 65.5 * 1.6 = 104.8 -> 105
+    expect(calculateProteinTarget(65.5)).toBe(105);
   });
 });
 
@@ -227,7 +227,7 @@ describe('calculateHealthResults', () => {
 
     expect(results.heightCm).toBe(175);
     expect(results.idealBodyWeight).toBeCloseTo(73.8, 0);
-    expect(results.proteinTarget).toBe(89);
+    expect(results.proteinTarget).toBe(118);
     expect(results.bmi).toBeUndefined();
     expect(results.waistToHeightRatio).toBeUndefined();
     expect(results.age).toBeUndefined();
@@ -346,7 +346,7 @@ describe('calculateHealthResults', () => {
     expect(decimalPlaces).toBeLessThanOrEqual(2);
   });
 
-  it('adjusts protein target to 1.0g/kg when eGFR < 45 (CKD Stage 3b+)', () => {
+  it('adjusts protein target to 0.8g/kg when eGFR < 60 (CKD stage 3+)', () => {
     const currentYear = new Date().getFullYear();
     const results = calculateHealthResults({
       heightCm: 175,
@@ -357,12 +357,12 @@ describe('calculateHealthResults', () => {
     });
 
     expect(results.eGFR).toBeDefined();
-    expect(results.eGFR!).toBeLessThan(45);
+    expect(results.eGFR!).toBeLessThan(60);
     // IBW for 175cm male ≈ 73.8kg → 1.0g/kg = 74g (vs 89g at 1.2g/kg)
-    expect(results.proteinTarget).toBe(74);
+    expect(results.proteinTarget).toBe(59);
   });
 
-  it('keeps standard 1.2g/kg protein when eGFR >= 45', () => {
+  it('keeps standard 1.6g/kg protein when eGFR >= 60', () => {
     const currentYear = new Date().getFullYear();
     const results = calculateHealthResults({
       heightCm: 175,
@@ -373,8 +373,8 @@ describe('calculateHealthResults', () => {
     });
 
     expect(results.eGFR).toBeDefined();
-    expect(results.eGFR!).toBeGreaterThanOrEqual(45);
-    expect(results.proteinTarget).toBe(89);
+    expect(results.eGFR!).toBeGreaterThanOrEqual(60);
+    expect(results.proteinTarget).toBe(118);
   });
 
   it('results.suggestions matches a direct generateSuggestions call', () => {
@@ -464,18 +464,18 @@ describe('getLipidStatus', () => {
 });
 
 describe('getProteinRate', () => {
-  it('returns 1.0 when eGFR < 45 (CKD 3b+)', () => {
-    expect(getProteinRate(44)).toBe(1.0);
-    expect(getProteinRate(10)).toBe(1.0);
+  it('returns 0.8 when eGFR < 60 (CKD stage 3+)', () => {
+    expect(getProteinRate(59)).toBe(0.8);
+    expect(getProteinRate(10)).toBe(0.8);
   });
 
-  it('returns 1.2 when eGFR >= 45', () => {
-    expect(getProteinRate(45)).toBe(1.2);
-    expect(getProteinRate(100)).toBe(1.2);
+  it('returns 1.6 when eGFR >= 60', () => {
+    expect(getProteinRate(60)).toBe(1.6);
+    expect(getProteinRate(100)).toBe(1.6);
   });
 
-  it('returns 1.2 when eGFR is undefined', () => {
-    expect(getProteinRate(undefined)).toBe(1.2);
-    expect(getProteinRate()).toBe(1.2);
+  it('returns 1.6 when eGFR is undefined', () => {
+    expect(getProteinRate(undefined)).toBe(1.6);
+    expect(getProteinRate()).toBe(1.6);
   });
 });

@@ -720,7 +720,7 @@ function getOptimalRange(
     }
     case 'systolic_bp': {
       // Age-dependent target: <120 for <65, <130 for ≥65
-      const target = age !== undefined && age >= 65 ? BP_THRESHOLDS.stage1Sys : BP_THRESHOLDS.elevatedSys;
+      const target = BP_THRESHOLDS.stage1Sys;
       const display = `< ${target} mmHg`;
       const status: RangeStatus = canonicalValue >= BP_THRESHOLDS.stage2Sys ? 'high'
         : canonicalValue >= target ? 'borderline' : 'normal';
